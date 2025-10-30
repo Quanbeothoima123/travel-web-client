@@ -117,7 +117,7 @@ export default function RegisterPage() {
         {/* STEP 1: Register Form */}
         {step === "register" && (
           <>
-            <h2 className="text-3xl font-bold text-center mb-8 text-cyan-700 cursor-default">
+            <h2 className="text-3xl font-bold text-center mb-8 text-cyan-700 cursor-pointer">
               Đăng ký
             </h2>
 
@@ -169,7 +169,7 @@ export default function RegisterPage() {
 
               <button
                 type="submit"
-                className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl cursor-default"
+                className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold py-3 rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl cursor-pointer"
               >
                 Đăng ký
               </button>
@@ -177,7 +177,7 @@ export default function RegisterPage() {
               <div className="flex justify-center mt-4">
                 <Link
                   href="/re-auth"
-                  className="cursor-default inline-block px-4 py-2 bg-gray-300 hover:bg-gray-400 text-red-600 font-bold text-sm rounded-lg transition-colors"
+                  className="cursor-pointer inline-block px-4 py-2 bg-gray-300 hover:bg-gray-400 text-red-600 font-bold text-sm rounded-lg transition-colors"
                 >
                   Xác thực tài khoản
                 </Link>
