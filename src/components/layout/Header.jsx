@@ -39,16 +39,16 @@ const MenuItem = ({ item, depth = 0, basePath, pathname }) => {
         href={linkTo}
         className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium border-2 transition-all duration-200 ${
           isActive
-            ? "bg-[#000080] text-white border-[#000080]"
-            : "text-gray-700 border-transparent hover:bg-white hover:text-[#000080] hover:border-gray-200"
+            ? "bg-primary text-white border-primary"
+            : "text-gray-700 border-transparent hover:bg-white hover:text-primary hover:border-gray-200"
         }`}
       >
         {item.title}
         {hasChildren &&
           (depth === 0 ? (
-            <ChevronDown className="w-4 h-4 text-[#000080]" />
+            <ChevronDown className="w-4 h-4 text-primary" />
           ) : (
-            <ChevronRight className="w-4 h-4 text-[#000080]" />
+            <ChevronRight className="w-4 h-4 text-primary" />
           ))}
       </Link>
 
@@ -135,7 +135,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm fixed top-0 left-0 right-0 w-full z-[1001]">
+    <header className="bg-white shadow-sm fixed top-0 left-0 right-0 w-full z-1001">
       <div className="container mx-auto px-4">
         <div className="flex items-center gap-2 py-3">
           {/* Logo */}
@@ -153,7 +153,7 @@ const Header = () => {
 
           {/* Hamburger (mobile) */}
           <button
-            className="lg:hidden inline-flex p-2 text-gray-700 cursor-pointer hover:text-[#000080] hover:bg-gray-100 rounded-lg transition-all duration-150"
+            className="lg:hidden inline-flex p-2 text-gray-700 cursor-pointer hover:text-primary hover:bg-gray-100 rounded-lg transition-all duration-150"
             onClick={toggleSidebar}
             aria-label="Toggle sidebar"
           >
@@ -181,13 +181,13 @@ const Header = () => {
               <>
                 <Link
                   href="/login"
-                  className="px-4 py-2 text-sm font-medium text-[#000080] border border-[#000080] rounded-lg hover:bg-[#000080] hover:text-white transition-all duration-200"
+                  className="px-4 py-2 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-all duration-200"
                 >
                   Đăng nhập
                 </Link>
                 <Link
                   href="/register"
-                  className="px-4 py-2 text-sm font-medium text-[#000080] border border-[#000080] rounded-lg hover:bg-[#000080] hover:text-white transition-all duration-200"
+                  className="px-4 py-2 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-all duration-200"
                 >
                   Đăng ký
                 </Link>
@@ -199,7 +199,7 @@ const Header = () => {
                   type="button"
                   onClick={handleToggleUserMenu}
                 >
-                  <User className="w-5 h-5 text-[#000080]" />
+                  <User className="w-5 h-5 text-primary" />
                   <span className="text-sm font-medium text-gray-700">
                     {user.fullName || user.name}
                   </span>
@@ -218,7 +218,7 @@ const Header = () => {
                 >
                   <Link
                     href="/user/profile"
-                    className="flex items-center gap-2 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-50 hover:text-[#000080] transition-all duration-150"
+                    className="flex items-center gap-2 px-4 py-3 text-gray-700 rounded-lg hover:bg-gray-50 hover:text-primary transition-all duration-150"
                     onClick={() => setIsUserMenuOpen(false)}
                   >
                     <UserPen className="w-4 h-4" />
