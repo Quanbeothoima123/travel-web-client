@@ -19,15 +19,16 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="vi" className={roboto.variable}>
+    <html
+      lang="vi"
+      className={roboto.variable}
+      suppressHydrationWarning // ← THÊM DÒNG NÀY
+    >
       <body className="font-sans antialiased">
         <ToastProvider>
           <AuthProvider>
             <Header />
-            <main className="pt-16">
-              {/* Padding để tránh Header fixed */}
-              {children}
-            </main>
+            <main className="pt-16">{children}</main>
             <Footer />
           </AuthProvider>
         </ToastProvider>
