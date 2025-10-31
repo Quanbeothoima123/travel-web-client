@@ -2,7 +2,7 @@
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://localhost:5000";
 
 export async function generateMetadata({ params, searchParams }) {
-  // ✅ Await params theo yêu cầu Next.js 15+
+  //  Await params theo yêu cầu Next.js 15+
   const { slug } = await params;
 
   // Fetch thông tin category để tạo metadata động
