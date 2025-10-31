@@ -1,4 +1,3 @@
-// src/app/user/layout.js
 "use client";
 
 import { useState, useEffect } from "react";
@@ -30,15 +29,13 @@ export default function UserLayout({ children }) {
     fetchAvatar();
   }, []);
 
-  // Close sidebar on route change (mobile)
-  useEffect(() => {
-    setSidebarOpen(false);
-  }, [pathname]);
-
   const menuItems = [
     { label: "Thông tin cá nhân", path: "/user/profile" },
     { label: "Lịch sử đặt tour", path: "/user/transactions_tour" },
-    { label: "Lịch sử sử dụng dịch vụ khác", path: "/user/transactions_service" },
+    {
+      label: "Lịch sử sử dụng dịch vụ khác",
+      path: "/user/transactions_service",
+    },
     { label: "Bạn bè", path: "/user/friends" },
     { label: "Nhắn tin", path: "/user/chat" },
     { label: "Tải video khoảng khắc", path: "/user/upload/videos" },
@@ -61,7 +58,7 @@ export default function UserLayout({ children }) {
             className="w-20 h-20 rounded-full object-cover border-2 border-gray-200 dark:border-gray-700"
           />
         </div>
-        
+
         <nav className="flex flex-col gap-2">
           {menuItems.map((item) => {
             const isActive = pathname === item.path;
@@ -69,6 +66,7 @@ export default function UserLayout({ children }) {
               <Link
                 key={item.path}
                 href={item.path}
+                onClick={() => setSidebarOpen(false)}
                 className={`px-3.5 py-3 rounded-lg transition-all duration-200 border whitespace-nowrap overflow-hidden text-ellipsis ${
                   isActive
                     ? "bg-blue-600 text-white border-blue-600"
@@ -91,7 +89,7 @@ export default function UserLayout({ children }) {
         >
           {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
-        
+
         <img
           src={userAvatar}
           alt="avatar"
@@ -102,7 +100,7 @@ export default function UserLayout({ children }) {
       {/* Mobile Sidebar */}
       {sidebarOpen && (
         <>
-          <aside className="lg:hidden fixed top-0 bottom-0 left-0 w-72 max-w-[92vw] bg-white dark:bg-gray-800 flex flex-col p-4 z-[1004] overflow-y-auto animate-slide-in shadow-xl">
+          <aside className="lg:hidden fixed top-0 bottom-0 left-0 w-72 max-w-[92vw] bg-white dark:bg-gray-800 flex flex-col p-4 z-[1004] overflow-y-auto animate-sidebarSlideIn shadow-xl">
             <button
               onClick={() => setSidebarOpen(false)}
               aria-label="Close sidebar"
@@ -126,6 +124,7 @@ export default function UserLayout({ children }) {
                   <Link
                     key={item.path}
                     href={item.path}
+                    onClick={() => setSidebarOpen(false)}
                     className={`px-3 py-2.5 rounded-lg transition-all text-sm border ${
                       isActive
                         ? "bg-blue-600 text-white border-blue-600"
@@ -150,22 +149,6 @@ export default function UserLayout({ children }) {
       <main className="flex-1 lg:ml-64 pt-20 lg:pt-5 px-3 lg:px-5 pb-4 transition-all duration-300">
         {children}
       </main>
-
-      <style jsx global>{`
-        @keyframes slide-in {
-          from {
-            transform: translateX(-100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        .animate-slide-in {
-          animation: slide-in 0.28s ease forwards;
-        }
-      `}</style>
     </div>
   );
 }
