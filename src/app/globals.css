@@ -226,3 +226,19 @@
 /* ========================================= */
 /* END SCROLL TO TOP ANIMATIONS */
 /* ========================================= */
+
+/* Sidebar slide animation */
+@keyframes sidebarSlideIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.animate-sidebarSlideIn {
+  animation: sidebarSlideIn 0.28s ease forwards;
+}
