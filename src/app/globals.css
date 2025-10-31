@@ -152,3 +152,77 @@
 .ring-primary {
   --tw-ring-color: var(--color-primary);
 }
+
+/* Modal animations */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================= */
+/* SCROLL TO TOP BUTTON ANIMATIONS - ADDED */
+/* ========================================= */
+
+/* Bounce up animation for arrow icon */
+@keyframes bounceUp {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-3px);
+  }
+}
+
+.animate-bounceUp {
+  animation: bounceUp 0.6s ease infinite alternate;
+}
+
+/* Scroll to top button visibility animation */
+@keyframes scrollButtonFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scrollButtonFadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+.scroll-button-enter {
+  animation: scrollButtonFadeIn 0.3s ease-in-out forwards;
+}
+
+.scroll-button-exit {
+  animation: scrollButtonFadeOut 0.3s ease-in-out forwards;
+}
+
+/* ========================================= */
+/* END SCROLL TO TOP ANIMATIONS */
+/* ========================================= */
