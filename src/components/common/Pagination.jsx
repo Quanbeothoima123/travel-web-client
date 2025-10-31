@@ -39,7 +39,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-inherit transition-all"
+        className="flex items-center justify-center w-10 h-10 rounded-lg border border-border hover:bg-primary hover:text-white hover:border-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-inherit transition-all"
         aria-label="Trang trước"
       >
         <ChevronLeft className="w-5 h-5" />
@@ -47,10 +47,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
 
       {getPageNumbers().map((page, idx) =>
         page === "..." ? (
-          <span
-            key={`ellipsis-${idx}`}
-            className="px-2 text-[var(--color-text-muted)]"
-          >
+          <span key={`ellipsis-${idx}`} className="px-2 text-text-muted">
             ...
           </span>
         ) : (
@@ -59,8 +56,8 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
             onClick={() => onPageChange(page)}
             className={`w-10 h-10 rounded-lg border transition-all ${
               currentPage === page
-                ? "bg-[var(--color-primary)] text-white border-[var(--color-primary)] font-semibold"
-                : "border-[var(--color-border)] hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)]"
+                ? "bg-primary text-white border-primary font-semibold"
+                : "border-border hover:bg-primary hover:text-white hover:border-primary"
             }`}
             aria-label={`Trang ${page}`}
             aria-current={currentPage === page ? "page" : undefined}
@@ -73,7 +70,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="flex items-center justify-center w-10 h-10 rounded-lg border border-[var(--color-border)] hover:bg-[var(--color-primary)] hover:text-white hover:border-[var(--color-primary)] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-inherit transition-all"
+        className="flex items-center justify-center w-10 h-10 rounded-lg border border-border hover:bg-primary hover:text-white hover:border-primary disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-inherit transition-all"
         aria-label="Trang sau"
       >
         <ChevronRight className="w-5 h-5" />
