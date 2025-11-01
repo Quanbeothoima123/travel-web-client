@@ -242,3 +242,172 @@
 .animate-sidebarSlideIn {
   animation: sidebarSlideIn 0.28s ease forwards;
 }
+
+/* ========================================= */
+/* HISTORY TOUR ORDER - PRINT & ANIMATIONS */
+/* ========================================= */
+
+/* Spinner animation */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Custom border width */
+.border-3 {
+  border-width: 3px;
+}
+
+/* Print styles for history tour order */
+@media print {
+  .min-h-screen {
+    min-height: auto;
+  }
+
+  /* Hide sort and pagination sections when printing */
+  section:has(select[id="sort-select"]),
+  section:has(button[aria-label*="Trang"]) {
+    display: none !important;
+  }
+
+  /* Reset title color for print */
+  h1 {
+    color: #000 !important;
+  }
+
+  /* Clean background for print */
+  .bg-gray-50 {
+    background: white !important;
+  }
+}
+
+/* ========================================= */
+/* WEATHER WIDGET ANIMATIONS */
+/* ========================================= */
+
+@keyframes weatherFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes weatherSlideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes weatherDropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-weatherFadeIn {
+  animation: weatherFadeIn 0.3s ease;
+}
+
+.animate-weatherSlideUp {
+  animation: weatherSlideUp 0.3s ease;
+}
+
+.animate-weatherDropdownSlide {
+  animation: weatherDropdownSlide 0.2s ease;
+}
+
+/* ========================================= */
+/* END WEATHER WIDGET ANIMATIONS */
+/* ========================================= */
+
+/* ========================================= */
+/* CONTACT FLOATING ANIMATIONS */
+/* ========================================= */
+
+/* Pulse Animation */
+@keyframes contactPulse {
+  0%,
+  100% {
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4),
+      0 0 0 0 rgba(102, 126, 234, 0.7);
+  }
+  50% {
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4),
+      0 0 0 15px rgba(102, 126, 234, 0);
+  }
+}
+
+.animate-contactPulse {
+  animation: contactPulse 2s infinite;
+}
+
+/* Shake Animation - Rung mỗi 5 giây */
+@keyframes contactShake {
+  0%,
+  90%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  91% {
+    transform: translateX(-3px) rotate(-5deg);
+  }
+  92% {
+    transform: translateX(3px) rotate(5deg);
+  }
+  93% {
+    transform: translateX(-3px) rotate(-5deg);
+  }
+  94% {
+    transform: translateX(3px) rotate(5deg);
+  }
+  95% {
+    transform: translateX(-2px) rotate(-3deg);
+  }
+  96% {
+    transform: translateX(2px) rotate(3deg);
+  }
+  97% {
+    transform: translateX(-1px) rotate(-2deg);
+  }
+  98% {
+    transform: translateX(1px) rotate(2deg);
+  }
+  99% {
+    transform: translateX(0) rotate(0deg);
+  }
+}
+
+.animate-contactShake {
+  animation: contactShake 5s infinite;
+}
+
+/* Custom border width */
+.border-3 {
+  border-width: 3px;
+}
+
+/* Custom scale on hover */
+.hover\:scale-115:hover {
+  transform: scale(1.15);
+}
+
+/* ========================================= */
+/* END CONTACT FLOATING ANIMATIONS */
+/* ========================================= */
