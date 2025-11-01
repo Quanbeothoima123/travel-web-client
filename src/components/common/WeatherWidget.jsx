@@ -417,7 +417,7 @@ const WeatherWidget = () => {
       {/* Trigger button - Góc trái dưới */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-8 left-8 flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-full font-semibold text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 z-[998]"
+        className="fixed bottom-8 left-8 flex items-center gap-2 px-5 py-3 bg-linear-to-r from-purple-600 to-indigo-600 text-white rounded-full font-semibold text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 z-998"
         aria-label="Xem thời tiết"
       >
         <Cloud size={20} />
@@ -427,7 +427,7 @@ const WeatherWidget = () => {
       {/* Modal */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] animate-weatherFadeIn"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-9999 animate-weatherFadeIn"
           onClick={() => setIsOpen(false)}
         >
           <div
@@ -435,7 +435,7 @@ const WeatherWidget = () => {
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-5 bg-gradient-to-r from-purple-600 to-indigo-600 text-white">
+            <div className="flex items-center justify-between px-6 py-5 bg-linear-to-r from-purple-600 to-indigo-600 text-white">
               <div className="flex items-center gap-3">
                 <Cloud size={24} />
                 <h3 className="text-xl font-semibold">Thời tiết</h3>
@@ -485,7 +485,7 @@ const WeatherWidget = () => {
                           >
                             <MapPin
                               size={16}
-                              className="text-purple-600 mt-0.5 flex-shrink-0"
+                              className="text-purple-600 mt-0.5 shrink-0"
                             />
                             <div className="flex-1 text-left min-w-0">
                               <div className="font-semibold text-sm text-gray-900 truncate">
@@ -636,7 +636,7 @@ const WeatherWidget = () => {
                   </div>
 
                   {/* Additional Info */}
-                  <div className="p-4 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl">
+                  <div className="p-4 bg-linear-to-br from-gray-50 to-gray-100 rounded-xl">
                     <div className="flex justify-between items-center py-2 text-sm text-gray-700 border-b border-gray-300">
                       <span>Nhiệt độ cao nhất:</span>
                       <strong className="text-gray-900">
