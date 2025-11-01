@@ -427,11 +427,11 @@ const WeatherWidget = () => {
       {/* Modal */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] animate-fadeIn"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[9999] animate-weatherFadeIn"
           onClick={() => setIsOpen(false)}
         >
           <div
-            className="bg-white rounded-3xl w-[90%] max-w-[500px] max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-slideUp"
+            className="bg-white rounded-3xl w-[90%] max-w-[500px] max-h-[90vh] overflow-hidden shadow-2xl flex flex-col animate-weatherSlideUp"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -468,7 +468,7 @@ const WeatherWidget = () => {
                   {showSuggestions && (
                     <div
                       ref={suggestionsRef}
-                      className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl max-h-64 overflow-y-auto z-50 animate-dropdownSlide"
+                      className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl max-h-64 overflow-y-auto z-50 animate-weatherDropdownSlide"
                     >
                       {loadingSuggestions ? (
                         <div className="flex items-center justify-center gap-2 p-4 text-purple-600">
@@ -544,7 +544,7 @@ const WeatherWidget = () => {
               )}
 
               {weather && !loading && !error && (
-                <div className="animate-fadeIn">
+                <div className="animate-weatherFadeIn">
                   {/* Current Weather */}
                   <div className="text-center py-6 border-b-2 border-gray-100">
                     <div className="flex items-center justify-center gap-2 mb-4 text-gray-700">
@@ -718,51 +718,6 @@ const WeatherWidget = () => {
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-
-        @keyframes slideUp {
-          from {
-            transform: translateY(50px);
-            opacity: 0;
-          }
-          to {
-            transform: translateY(0);
-            opacity: 1;
-          }
-        }
-
-        @keyframes dropdownSlide {
-          from {
-            opacity: 0;
-            transform: translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-
-        .animate-fadeIn {
-          animation: fadeIn 0.3s ease;
-        }
-
-        .animate-slideUp {
-          animation: slideUp 0.3s ease;
-        }
-
-        .animate-dropdownSlide {
-          animation: dropdownSlide 0.2s ease;
-        }
-      `}</style>
     </>
   );
 };
