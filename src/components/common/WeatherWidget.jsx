@@ -417,7 +417,7 @@ const WeatherWidget = () => {
       {/* Trigger button - Góc trái dưới */}
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed bottom-8 left-8 flex items-center gap-2 px-5 py-3 bg-linear-to-r from-purple-600 to-indigo-600 text-white rounded-full font-semibold text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 z-998"
+        className="cursor-pointer fixed bottom-8 left-8 flex items-center gap-2 px-5 py-3 bg-linear-to-r from-purple-600 to-indigo-600 text-white rounded-full font-semibold text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300 z-998"
         aria-label="Xem thời tiết"
       >
         <Cloud size={20} />

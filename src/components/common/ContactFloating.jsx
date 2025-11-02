@@ -142,7 +142,7 @@ const ContactFloating = () => {
   };
 
   return (
-    <div className="fixed bottom-8 left-[140px] z-999">
+    <div className="fixed bottom-20 left-[30px] z-999">
       <div
         className="relative flex flex-col items-end gap-3"
         onMouseEnter={() => setIsOpen(true)}
@@ -150,7 +150,7 @@ const ContactFloating = () => {
       >
         {/* Main Toggle Button */}
         <button
-          className={`w-[60px] h-[60px] rounded-full bg-linear-to-br from-purple-600 to-indigo-700 border-0 shadow-lg flex items-center justify-center transition-all duration-300 relative z-2 hover:scale-110 hover:shadow-xl animate-contactPulse animate-contactShake ${
+          className={`cursor-pointer w-[60px] h-[60px] rounded-full bg-linear-to-br from-purple-600 to-indigo-700 border-0 shadow-lg flex items-center justify-center transition-all duration-300 relative z-2 hover:scale-110 hover:shadow-xl animate-contactPulse animate-contactShake ${
             isOpen ? "rotate-45" : ""
           }`}
           aria-label="Contact options"
@@ -172,7 +172,7 @@ const ContactFloating = () => {
 
         {/* Contact Items - Hiển thị lên trên */}
         <div
-          className={`flex flex-col-reverse items-end gap-3 absolute bottom-[72px] right-0 z-1 transition-opacity duration-300 ${
+          className={` flex flex-col-reverse items-end gap-3 absolute bottom-[60px] right-0 z-1 transition-opacity duration-300 ${
             isOpen
               ? "opacity-100 pointer-events-auto"
               : "opacity-0 pointer-events-none"
@@ -181,7 +181,7 @@ const ContactFloating = () => {
           {contactItems.map((item, index) => (
             <div
               key={item.id}
-              className={`flex items-center gap-3 cursor-pointer transition-all duration-300 hover:z-10 ${
+              className={`flex items-center gap-3 transition-all duration-300 hover:z-10 ${
                 isOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
               }`}
               style={{
@@ -198,7 +198,7 @@ const ContactFloating = () => {
 
               {/* Button */}
               <button
-                className={`peer w-[50px] h-[50px] rounded-full border-3 border-white shadow-md flex items-center justify-center transition-all duration-300 hover:scale-115 hover:shadow-xl p-0 shrink-0 ${getButtonColorClass(
+                className={`cursor-pointer peer w-[50px] h-[50px] rounded-full border-3 border-white shadow-md flex items-center justify-center transition-all duration-300 hover:scale-115 hover:shadow-xl p-0 shrink-0 ${getButtonColorClass(
                   item.id
                 )}`}
                 aria-label={item.alt}
