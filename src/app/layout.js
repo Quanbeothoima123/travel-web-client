@@ -2,10 +2,7 @@ import { Roboto } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
-import Header from "@/components/layout/Header";
-import Footer from "@/components/layout/Footer";
-import WeatherWidget from "@/components/common/WeatherWidget";
-import ContactFloating from "@/components/common/ContactFloating";
+
 const roboto = Roboto({
   weight: ["300", "400", "500", "700"],
   subsets: ["latin", "vietnamese"],
@@ -20,20 +17,10 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html
-      lang="vi"
-      className={roboto.variable}
-      suppressHydrationWarning // ← THÊM DÒNG NÀY
-    >
+    <html lang="vi" className={roboto.variable} suppressHydrationWarning>
       <body className="font-sans antialiased">
         <ToastProvider>
-          <AuthProvider>
-            <Header />
-            <main className="pt-16">{children}</main>
-            <Footer />
-            <WeatherWidget />
-            <ContactFloating />
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
         </ToastProvider>
       </body>
     </html>
