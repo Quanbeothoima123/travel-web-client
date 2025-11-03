@@ -121,7 +121,7 @@ export default function GalleryCategoryTreeSelect({
 
       {/* Menu */}
       {open && (
-        <div className="absolute top-[calc(100%+6px)] left-0 right-0 z-[60] bg-white border border-[--color-border] rounded-lg shadow-lg max-h-[360px] overflow-hidden flex flex-col transition-all duration-300 opacity-100">
+        <div className="absolute top-[calc(100%+6px)] left-0 right-0 z-60 bg-white border border-[--color-border] rounded-lg shadow-lg max-h-[360px] overflow-hidden flex flex-col transition-all duration-300 opacity-100">
           {/* Search */}
           <div className="p-2 border-b border-gray-200 bg-white">
             <input
@@ -170,7 +170,7 @@ function TreeNode({ node, onPick, depth }) {
   return (
     <li className="m-0">
       <div
-        className="flex items-center min-h-[40px] rounded transition-all duration-200 cursor-pointer text-[--color-text] hover:bg-primary hover:text-white"
+        className="flex items-center min-h-10 rounded transition-all duration-200 cursor-pointer text-[--color-text] hover:bg-primary hover:text-white"
         style={{
           paddingLeft: `calc(12px + (${depth} * 16px))`,
           paddingRight: "12px",
@@ -179,7 +179,7 @@ function TreeNode({ node, onPick, depth }) {
         {hasChildren ? (
           <button
             type="button"
-            className="inline-flex items-center justify-center w-5 h-5 flex-shrink-0 mr-1.5 rounded border border-[--color-border] bg-white cursor-pointer p-0 relative transition-all duration-150 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:shadow-[0_0_0_3px_rgba(76,132,216,0.08)]"
+            className="inline-flex items-center justify-center w-5 h-5 shrink-0 mr-1.5 rounded border border-[--color-border] bg-white cursor-pointer p-0 relative transition-all duration-150 hover:bg-gray-50 hover:border-gray-300 focus:outline-none focus:shadow-[0_0_0_3px_rgba(76,132,216,0.08)]"
             onClick={(e) => {
               e.stopPropagation();
               setExpanded((v) => !v);
@@ -200,7 +200,7 @@ function TreeNode({ node, onPick, depth }) {
             />
           </button>
         ) : (
-          <span className="w-[18px] h-[18px] flex-shrink-0 mr-1.5 rounded bg-transparent" />
+          <span className="w-[18px] h-[18px] shrink-0 mr-1.5 rounded bg-transparent" />
         )}
 
         <button

@@ -675,7 +675,7 @@ const Commnent = ({ targetId, targetType = "news", currentUser }) => {
         </div>
 
         <div className="flex-1 min-w-0">
-          <div className="bg-gray-100 rounded-2xl px-3 py-2 inline-block max-w-full break-words">
+          <div className="bg-gray-100 rounded-2xl px-3 py-2 inline-block max-w-full wrap-break-word">
             <div className="flex items-center gap-2 mb-0.5 flex-wrap">
               <span className="font-semibold text-sm text-gray-900">
                 {displayName}
@@ -689,7 +689,7 @@ const Commnent = ({ targetId, targetType = "news", currentUser }) => {
                 </span>
               )}
             </div>
-            <p className="text-sm text-gray-900 leading-tight break-words">
+            <p className="text-sm text-gray-900 leading-tight wrap-break-word">
               {comment.content}
             </p>
           </div>
@@ -919,7 +919,7 @@ const Commnent = ({ targetId, targetType = "news", currentUser }) => {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                   placeholder="Viết bình luận của bạn..."
-                  className="w-full min-h-[80px] px-3 py-3 pr-11 border-2 border-gray-200 rounded-xl resize-vertical text-sm leading-tight outline-none focus:border-blue-600 focus:shadow-[0_0_0_3px_rgba(24,119,242,0.1)] transition-all"
+                  className="w-full min-h-20 px-3 py-3 pr-11 border-2 border-gray-200 rounded-xl resize-vertical text-sm leading-tight outline-none focus:border-blue-600 focus:shadow-[0_0_0_3px_rgba(24,119,242,0.1)] transition-all"
                   rows="3"
                   onFocus={handleMainTextareaInteraction}
                   onClick={handleMainTextareaInteraction}
