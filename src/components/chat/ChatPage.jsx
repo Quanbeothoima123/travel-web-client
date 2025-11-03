@@ -16,7 +16,6 @@ import { selectAndUploadImages } from "@/lib/utils/imageUpload.utils";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
-// ✅ Socket được quản lý global để tránh reconnect
 let socket = null;
 
 const ChatPage = () => {
@@ -42,20 +41,17 @@ const ChatPage = () => {
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
-  // ✅ Initialize isMobile on client side only
   useEffect(() => {
     setIsMobile(window.innerWidth < 768);
     setShowSidebar(!chatId || window.innerWidth >= 768);
   }, [chatId]);
 
-  // ✅ Scroll to bottom helper
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, 100);
   }, []);
 
-  // ✅ Load chat list
   const loadChatList = useCallback(async () => {
     try {
       const response = await fetch(`${API_BASE}/api/v1/chat/getChatList`, {
@@ -66,7 +62,6 @@ const ChatPage = () => {
       if (result.success) {
         setChats(result.data);
 
-        // Auto select first chat on desktop if no chatId
         if (!chatId && result.data.length > 0 && !isMobile) {
           router.replace(`/user/chat/${result.data[0].chatId}`);
         }
@@ -76,12 +71,10 @@ const ChatPage = () => {
     }
   }, [chatId, isMobile, router]);
 
-  // ✅ Load chat detail
   const loadChatDetail = useCallback(
     async (id) => {
       setLoading(true);
       try {
-        // Load messages
         const messagesResponse = await fetch(
           `${API_BASE}/api/v1/message/get-messages/${id}`,
           { credentials: "include" }
@@ -92,12 +85,9 @@ const ChatPage = () => {
           setMessages(messagesResult.data.messages);
         }
 
-        // Load chat info
         const chatResponse = await fetch(
           `${API_BASE}/api/v1/chat/detail/${id}`,
-          {
-            credentials: "include",
-          }
+          { credentials: "include" }
         );
         const chatResult = await chatResponse.json();
 
@@ -106,13 +96,11 @@ const ChatPage = () => {
           setNickname(chatResult.data.otherUser.name);
         }
 
-        // ✅ Join socket room
         if (socket && socket.connected) {
           socket.emit("join-chat", id);
           socket.emit("mark-as-read", { chatId: id });
         }
 
-        // Reset unread count
         setChats((prev) =>
           prev.map((chat) =>
             chat.chatId === id ? { ...chat, unreadCount: 0 } : chat
@@ -129,10 +117,8 @@ const ChatPage = () => {
     [scrollToBottom]
   );
 
-  // ✅ Create or get chat
   const createOrGetChat = useCallback(
     async (otherUserId) => {
-      // Prevent duplicate calls
       if (createOrGetChat.pending) {
         console.log("⏳ Chat creation already in progress");
         return;
@@ -165,7 +151,6 @@ const ChatPage = () => {
     [router, loadChatList]
   );
 
-  // ✅ Initialize socket chỉ một lần
   useEffect(() => {
     if (!socket && user) {
       console.log("🔌 Initializing socket connection...");
@@ -245,7 +230,6 @@ const ChatPage = () => {
     };
   }, [user, scrollToBottom]);
 
-  // Handle responsive
   useEffect(() => {
     const handleResize = () => {
       const mobile = window.innerWidth < 768;
@@ -257,14 +241,12 @@ const ChatPage = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // ✅ Load chat list
   useEffect(() => {
     if (user) {
       loadChatList();
     }
   }, [user, loadChatList]);
 
-  // ✅ Load specific chat
   useEffect(() => {
     if (chatId && user) {
       loadChatDetail(chatId);
@@ -272,7 +254,6 @@ const ChatPage = () => {
     }
   }, [chatId, isMobile, user, loadChatDetail]);
 
-  // ✅ Tạo hoặc lấy chat từ userId (từ FriendsList)
   useEffect(() => {
     const otherUserId = searchParams?.get("userId");
 
@@ -376,16 +357,14 @@ const ChatPage = () => {
     }
   };
 
-  // ✅ Chờ auth loading xong
   if (authLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
+      <div className="text-center py-[60px] px-5 text-base text-gray-600">
         Đang tải...
       </div>
     );
   }
 
-  // ✅ Redirect nếu chưa đăng nhập
   if (!user) {
     router.replace("/login");
     return null;
@@ -418,24 +397,22 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="flex h-[calc(100vh-100px)] lg:h-[calc(100vh-140px)] bg-white overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+    <div className="flex h-[800px] bg-white overflow-hidden rounded-xl border border-gray-200 shadow-sm">
       {/* Sidebar */}
       <div
-        className={`w-[360px] border-r border-gray-200 flex flex-col bg-white transition-transform duration-300 md:absolute md:left-0 md:top-0 md:bottom-0 md:w-full md:z-10 ${
-          showSidebar ? "md:translate-x-0" : "md:-translate-x-full"
-        }`}
+        className={`w-[360px] border-r border-gray-200 flex flex-col bg-white transition-all duration-300 ${
+          showSidebar ? "" : "hidden md:flex"
+        } ${isMobile && !showSidebar ? "hidden" : ""}`}
       >
-        {/* Sidebar Header */}
         <div className="p-4 border-b border-gray-200">
           <h2 className="text-2xl font-bold text-gray-900 m-0">Đoạn chat</h2>
         </div>
 
-        {/* Chat List */}
         <div className="flex-1 overflow-y-auto">
           {chats.map((chat) => (
             <div
               key={chat.chatId}
-              className={`flex items-center p-3 cursor-pointer transition-colors relative ${
+              className={`flex items-center p-3 cursor-pointer transition-colors ${
                 chatId === chat.chatId ? "bg-blue-50" : "hover:bg-gray-100"
               }`}
               onClick={() => {
@@ -483,7 +460,7 @@ const ChatPage = () => {
       </div>
 
       {/* Chat Content */}
-      <div className="flex-1 flex flex-col bg-white md:w-full">
+      <div className="flex-1 flex flex-col bg-white min-w-0">
         {!chatId ? (
           <div className="flex-1 flex items-center justify-center text-gray-600 text-base">
             <p>Chọn một đoạn chat để bắt đầu nhắn tin</p>
@@ -491,10 +468,10 @@ const ChatPage = () => {
         ) : (
           <>
             {/* Header */}
-            <div className="flex items-center p-3 border-b border-gray-200 bg-white shadow-sm">
+            <div className="flex items-center p-3 border-b border-gray-200 bg-white">
               {isMobile && (
                 <button
-                  className="p-2 mr-2 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-900 transition-colors"
+                  className="p-2 mr-2 rounded-full hover:bg-gray-100 text-gray-900"
                   onClick={() => {
                     setShowSidebar(true);
                     router.push("/user/chat");
@@ -504,19 +481,19 @@ const ChatPage = () => {
                 </button>
               )}
 
-              <div className="flex items-center flex-1">
+              <div className="flex items-center flex-1 min-w-0">
                 <img
                   src={activeChat?.otherUser.avatar || "/default-avatar.png"}
                   alt={activeChat?.otherUser.name}
                   className="w-10 h-10 rounded-full mr-3 object-cover"
                 />
-                <div className="font-semibold text-[15px] text-gray-900">
+                <div className="font-semibold text-[15px] text-gray-900 truncate">
                   {activeChat?.otherUser.name}
                 </div>
               </div>
 
               <button
-                className="p-2 rounded-full hover:bg-gray-100 flex items-center justify-center text-gray-600 transition-colors"
+                className="p-2 rounded-full hover:bg-gray-100 text-gray-600"
                 onClick={() => setShowNicknameModal(true)}
                 title="Đặt biệt danh"
               >
@@ -533,7 +510,7 @@ const ChatPage = () => {
               {messages.map((msg) => (
                 <div
                   key={msg._id}
-                  className={`flex items-end gap-2 animate-[fadeIn_0.3s_ease] ${
+                  className={`flex items-end gap-2 ${
                     msg.sender._id === user._id ? "flex-row-reverse" : ""
                   }`}
                 >
@@ -546,7 +523,7 @@ const ChatPage = () => {
                   )}
 
                   <div
-                    className={`max-w-[60%] md:max-w-[75%] sm:max-w-[85%] p-2 px-3 rounded-[18px] break-words relative ${
+                    className={`max-w-[60%] p-2 px-3 rounded-[18px] break-words ${
                       msg.sender._id === user._id
                         ? "bg-blue-600 text-white"
                         : "bg-gray-100 text-gray-900"
@@ -557,7 +534,7 @@ const ChatPage = () => {
                         <img
                           src={msg.content}
                           alt="Attachment"
-                          className="w-full h-auto block transition-transform hover:scale-105"
+                          className="w-full h-auto block"
                           onClick={() => window.open(msg.content, "_blank")}
                         />
                       </div>
@@ -584,14 +561,14 @@ const ChatPage = () => {
 
               {typing && (
                 <div className="flex items-center gap-1 p-2 px-3 bg-gray-100 rounded-[18px] w-fit">
-                  <span className="w-2 h-2 rounded-full bg-gray-600 animate-[typing_1.4s_infinite]" />
-                  <span className="w-2 h-2 rounded-full bg-gray-600 animate-[typing_1.4s_infinite_0.2s]" />
-                  <span className="w-2 h-2 rounded-full bg-gray-600 animate-[typing_1.4s_infinite_0.4s]" />
+                  <span className="w-2 h-2 rounded-full bg-gray-600 animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-gray-600 animate-pulse" />
+                  <span className="w-2 h-2 rounded-full bg-gray-600 animate-pulse" />
                 </div>
               )}
 
               {uploading && (
-                <div className="p-2 px-3 bg-blue-50 text-blue-600 rounded-[18px] w-fit text-[13px] animate-pulse">
+                <div className="p-2 px-3 bg-blue-50 text-blue-600 rounded-[18px] w-fit text-[13px]">
                   Đang tải ảnh lên...
                 </div>
               )}
@@ -606,7 +583,7 @@ const ChatPage = () => {
             >
               <button
                 type="button"
-                className="p-2 rounded-full hover:bg-gray-100 flex items-center justify-center text-blue-600 transition-colors"
+                className="p-2 rounded-full hover:bg-gray-100 text-blue-600"
                 onClick={handleSendImage}
                 disabled={uploading}
                 title="Gửi ảnh"
@@ -616,7 +593,7 @@ const ChatPage = () => {
 
               <button
                 type="button"
-                className="p-2 rounded-full hover:bg-gray-100 flex items-center justify-center text-blue-600 transition-colors"
+                className="p-2 rounded-full hover:bg-gray-100 text-blue-600"
                 disabled
               >
                 <Paperclip size={20} />
@@ -633,7 +610,7 @@ const ChatPage = () => {
 
               <button
                 type="button"
-                className="p-2 rounded-full hover:bg-gray-100 flex items-center justify-center text-blue-600 transition-colors"
+                className="p-2 rounded-full hover:bg-gray-100 text-blue-600"
                 disabled
               >
                 <Smile size={20} />
@@ -641,7 +618,7 @@ const ChatPage = () => {
 
               <button
                 type="submit"
-                className="p-2 rounded-full hover:bg-gray-100 flex items-center justify-center text-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="p-2 rounded-full hover:bg-gray-100 text-blue-600 disabled:opacity-50"
                 disabled={!newMessage.trim() || uploading}
               >
                 <Send size={18} />
@@ -658,7 +635,7 @@ const ChatPage = () => {
           onClick={() => setShowNicknameModal(false)}
         >
           <div
-            className="bg-white p-6 rounded-xl min-w-[400px] max-w-[90%] md:min-w-[320px] md:mx-4"
+            className="bg-white p-6 rounded-xl w-[400px] max-w-[90%]"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-xl font-semibold mb-4 mt-0">Đặt biệt danh</h3>
@@ -672,13 +649,13 @@ const ChatPage = () => {
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setShowNicknameModal(false)}
-                className="py-2.5 px-5 border-none rounded-lg text-[15px] font-semibold cursor-pointer transition-colors bg-gray-200 text-gray-900 hover:bg-gray-300"
+                className="py-2.5 px-5 border-none rounded-lg text-[15px] font-semibold bg-gray-200 text-gray-900 hover:bg-gray-300"
               >
                 Hủy
               </button>
               <button
                 onClick={handleSetNickname}
-                className="py-2.5 px-5 border-none rounded-lg text-[15px] font-semibold cursor-pointer transition-colors bg-blue-600 text-white hover:bg-blue-700"
+                className="py-2.5 px-5 border-none rounded-lg text-[15px] font-semibold bg-blue-600 text-white hover:bg-blue-700"
               >
                 Lưu
               </button>
