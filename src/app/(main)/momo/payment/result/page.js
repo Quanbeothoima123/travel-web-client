@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, useRef, Suspense } from "react";
+import { useRouter } from "next/navigation";
 import {
   CheckCircle,
   XCircle,
@@ -21,12 +21,12 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import LoadingModal from "@/components/common/LoadingModal";
 import { useToast } from "@/contexts/ToastContext";
+import SearchParamsWrapper from "./SearchParamsWrapper"; // Import component mới
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
-export default function MomoPaymentResultPage() {
+function MomoPaymentResultContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const invoiceRef = useRef(null);
 
   const [invoice, setInvoice] = useState(null);
@@ -34,10 +34,12 @@ export default function MomoPaymentResultPage() {
   const [sendingEmail, setSendingEmail] = useState(false);
   const [printing, setPrinting] = useState(false);
   const [error, setError] = useState(null);
+  const [params, setParams] = useState({
+    orderId: null,
+    resultCode: null,
+    transId: null,
+  });
 
-  const orderId = searchParams.get("orderId");
-  const resultCode = searchParams.get("resultCode");
-  const transId = searchParams.get("transId");
   const { showToast } = useToast();
 
   const formatMoney = (v) =>
@@ -52,7 +54,8 @@ export default function MomoPaymentResultPage() {
     d ? new Date(d).toLocaleString("vi-VN") : "Chưa có thông tin";
 
   useEffect(() => {
-    if (!orderId) {
+    if (!params.orderId) {
+      if (params.orderId === null) return; // Chưa load params
       setError("Không tìm thấy orderId trong URL.");
       setLoading(false);
       return;
@@ -61,7 +64,7 @@ export default function MomoPaymentResultPage() {
     const fetchInvoice = async () => {
       try {
         const res = await fetch(
-          `${API_BASE}/api/v1/invoice/detail/${orderId}`,
+          `${API_BASE}/api/v1/invoice/detail/${params.orderId}`,
           { credentials: "include" }
         );
         if (!res.ok) throw new Error(await res.text());
@@ -75,18 +78,22 @@ export default function MomoPaymentResultPage() {
     };
 
     fetchInvoice();
-  }, [orderId]);
+  }, [params.orderId]);
 
   const isSuccess = () =>
-    invoice?.isPaid || invoice?.status === "paid" || String(resultCode) === "0";
+    invoice?.isPaid ||
+    invoice?.status === "paid" ||
+    String(params.resultCode) === "0";
 
   const handleSendEmail = async () => {
-    if (!orderId) return;
+    if (!params.orderId) return;
     setSendingEmail(true);
 
     try {
       const res = await fetch(
-        `${API_BASE}/api/v1/invoice/send-email/${encodeURIComponent(orderId)}`,
+        `${API_BASE}/api/v1/invoice/send-email/${encodeURIComponent(
+          params.orderId
+        )}`,
         { method: "GET", credentials: "include" }
       );
 
@@ -122,7 +129,7 @@ export default function MomoPaymentResultPage() {
       pdf.save(
         invoice?.invoiceCode
           ? `${invoice.invoiceCode}.pdf`
-          : `invoice-${orderId}.pdf`
+          : `invoice-${params.orderId}.pdf`
       );
     } catch (err) {
       console.error("PDF error:", err);
@@ -155,260 +162,278 @@ export default function MomoPaymentResultPage() {
     );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div
-          className={`bg-white rounded-2xl shadow-2xl overflow-hidden ${
-            isSuccess()
-              ? "border-t-4 border-green-500"
-              : "border-t-4 border-red-500"
-          }`}
-        >
-          {/* Header */}
+    <>
+      <SearchParamsWrapper onParamsReady={setParams} />
+
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4">
+        <div className="max-w-4xl mx-auto">
           <div
-            className={`p-8 text-center ${
+            className={`bg-white rounded-2xl shadow-2xl overflow-hidden ${
               isSuccess()
-                ? "bg-gradient-to-r from-green-50 to-emerald-50"
-                : "bg-gradient-to-r from-red-50 to-rose-50"
+                ? "border-t-4 border-green-500"
+                : "border-t-4 border-red-500"
             }`}
           >
-            {isSuccess() ? (
-              <>
-                <CheckCircle className="w-20 h-20 mx-auto mb-4 text-green-500" />
-                <h2 className="text-3xl font-bold text-green-700 m-0">
-                  Đặt tour thành công
-                </h2>
-              </>
-            ) : (
-              <>
-                <XCircle className="w-20 h-20 mx-auto mb-4 text-red-500" />
-                <h2 className="text-3xl font-bold text-red-700 m-0">
-                  Đặt tour thất bại
-                </h2>
-              </>
-            )}
+            {/* Header */}
+            <div
+              className={`p-8 text-center ${
+                isSuccess()
+                  ? "bg-gradient-to-r from-green-50 to-emerald-50"
+                  : "bg-gradient-to-r from-red-50 to-rose-50"
+              }`}
+            >
+              {isSuccess() ? (
+                <>
+                  <CheckCircle className="w-20 h-20 mx-auto mb-4 text-green-500" />
+                  <h2 className="text-3xl font-bold text-green-700 m-0">
+                    Đặt tour thành công
+                  </h2>
+                </>
+              ) : (
+                <>
+                  <XCircle className="w-20 h-20 mx-auto mb-4 text-red-500" />
+                  <h2 className="text-3xl font-bold text-red-700 m-0">
+                    Đặt tour thất bại
+                  </h2>
+                </>
+              )}
+            </div>
+
+            {/* Body */}
+            <div className="p-8" ref={invoiceRef}>
+              {loading ? (
+                <p className="text-center text-gray-600 py-8">
+                  Đang tải thông tin hóa đơn...
+                </p>
+              ) : error ? (
+                <p className="text-center text-red-600 py-8">{error}</p>
+              ) : !invoice ? (
+                <p className="text-center text-gray-500 py-8">
+                  Không tìm thấy hóa đơn.
+                </p>
+              ) : (
+                <div className="space-y-1">
+                  <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-t-xl">
+                    <h3 className="text-xl font-bold m-0">Hóa đơn chi tiết</h3>
+                  </div>
+
+                  <div className="border border-gray-200 rounded-b-xl divide-y divide-gray-200">
+                    {/* Invoice Info */}
+                    <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2 text-gray-700 font-medium">
+                        <Tag className="w-4 h-4" />
+                        <span>Mã hóa đơn</span>
+                      </div>
+                      <div className="font-semibold text-gray-900">
+                        {invoice.invoiceCode}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2 text-gray-700 font-medium">
+                        <Tag className="w-4 h-4" />
+                        <span>Trạng thái</span>
+                      </div>
+                      <div className="font-semibold text-gray-900">
+                        {invoice.status}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2 text-gray-700 font-medium">
+                        <Tag className="w-4 h-4" />
+                        <span>Phương thức</span>
+                      </div>
+                      <div className="font-semibold text-gray-900">
+                        {invoice.typeOfPayment}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2 text-gray-700 font-medium">
+                        <Tag className="w-4 h-4" />
+                        <span>Mã giao dịch</span>
+                      </div>
+                      <div className="font-semibold text-gray-900">
+                        {invoice.transactionId || params.transId || "Chưa có"}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2 text-gray-700 font-medium">
+                        <Calendar className="w-4 h-4" />
+                        <span>Ngày thanh toán</span>
+                      </div>
+                      <div className="font-semibold text-gray-900">
+                        {formatDate(invoice.datePayment)}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center p-4 bg-gradient-to-r from-yellow-50 to-amber-50">
+                      <div className="flex items-center gap-2 text-gray-900 font-bold">
+                        <Tag className="w-5 h-5" />
+                        <span>Tổng tiền</span>
+                      </div>
+                      <div className="text-2xl font-bold text-red-600">
+                        {formatMoney(invoice.totalPrice)}
+                      </div>
+                    </div>
+
+                    {/* Customer Info */}
+                    <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2 text-gray-700 font-medium">
+                        <User className="w-4 h-4" />
+                        <span>Người đặt</span>
+                      </div>
+                      <div className="font-semibold text-gray-900">
+                        {invoice.nameOfUser}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2 text-gray-700 font-medium">
+                        <Phone className="w-4 h-4" />
+                        <span>SĐT</span>
+                      </div>
+                      <div className="font-semibold text-gray-900">
+                        {invoice.phoneNumber}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2 text-gray-700 font-medium">
+                        <Mail className="w-4 h-4" />
+                        <span>Email</span>
+                      </div>
+                      <div className="font-semibold text-gray-900">
+                        {invoice.email}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-start p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2 text-gray-700 font-medium">
+                        <MapPin className="w-4 h-4" />
+                        <span>Địa chỉ</span>
+                      </div>
+                      <div className="font-semibold text-gray-900 text-right max-w-md">
+                        {`${invoice.address || ""}, ${
+                          invoice.ward?.name_with_type || ""
+                        }, ${invoice.province?.name_with_type || ""}`.trim()}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2 text-gray-700 font-medium">
+                        <Calendar className="w-4 h-4" />
+                        <span>Ngày khởi hành</span>
+                      </div>
+                      <div className="font-semibold text-gray-900">
+                        {formatDate(invoice.departureDate)}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2 text-gray-700 font-medium">
+                        <Users className="w-4 h-4" />
+                        <span>Tổng số khách</span>
+                      </div>
+                      <div className="font-semibold text-gray-900">
+                        {invoice.totalPeople}
+                      </div>
+                    </div>
+
+                    <div className="flex justify-between items-start p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2 text-gray-700 font-medium">
+                        <Armchair className="w-4 h-4" />
+                        <span>Ghế cơ bản</span>
+                      </div>
+                      <div>{renderSeatList(invoice.seatFor)}</div>
+                    </div>
+
+                    <div className="flex justify-between items-start p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2 text-gray-700 font-medium">
+                        <Armchair className="w-4 h-4" />
+                        <span>Ghế thêm</span>
+                      </div>
+                      <div>{renderSeatList(invoice.seatAddFor, true)}</div>
+                    </div>
+
+                    <div className="flex justify-between items-start p-4 hover:bg-gray-50 transition-colors">
+                      <div className="flex items-center gap-2 text-gray-700 font-medium">
+                        <StickyNote className="w-4 h-4" />
+                        <span>Ghi chú</span>
+                      </div>
+                      <div className="font-semibold text-gray-900 text-right max-w-md">
+                        {invoice.note || "Không có"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 bg-gray-50 flex flex-wrap gap-3 justify-center border-t border-gray-200">
+              <button
+                onClick={handleHome}
+                className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 hover:border-gray-400 transition-all"
+              >
+                <Home className="w-4 h-4" />
+                <span>Trang chủ</span>
+              </button>
+
+              <button
+                onClick={handleSendEmail}
+                disabled={sendingEmail}
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
+              >
+                <Mail className="w-4 h-4" />
+                <span>Gửi email</span>
+              </button>
+
+              <button
+                onClick={handlePrintPDF}
+                disabled={printing || !invoice}
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
+              >
+                <FileText className="w-4 h-4" />
+                <span>Xuất PDF</span>
+              </button>
+            </div>
           </div>
 
-          {/* Body */}
-          <div className="p-8" ref={invoiceRef}>
-            {loading ? (
-              <p className="text-center text-gray-600 py-8">
-                Đang tải thông tin hóa đơn...
-              </p>
-            ) : error ? (
-              <p className="text-center text-red-600 py-8">{error}</p>
-            ) : !invoice ? (
-              <p className="text-center text-gray-500 py-8">
-                Không tìm thấy hóa đơn.
-              </p>
-            ) : (
-              <div className="space-y-1">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 rounded-t-xl">
-                  <h3 className="text-xl font-bold m-0">Hóa đơn chi tiết</h3>
-                </div>
-
-                <div className="border border-gray-200 rounded-b-xl divide-y divide-gray-200">
-                  {/* Invoice Info */}
-                  <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-2 text-gray-700 font-medium">
-                      <Tag className="w-4 h-4" />
-                      <span>Mã hóa đơn</span>
-                    </div>
-                    <div className="font-semibold text-gray-900">
-                      {invoice.invoiceCode}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-2 text-gray-700 font-medium">
-                      <Tag className="w-4 h-4" />
-                      <span>Trạng thái</span>
-                    </div>
-                    <div className="font-semibold text-gray-900">
-                      {invoice.status}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-2 text-gray-700 font-medium">
-                      <Tag className="w-4 h-4" />
-                      <span>Phương thức</span>
-                    </div>
-                    <div className="font-semibold text-gray-900">
-                      {invoice.typeOfPayment}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-2 text-gray-700 font-medium">
-                      <Tag className="w-4 h-4" />
-                      <span>Mã giao dịch</span>
-                    </div>
-                    <div className="font-semibold text-gray-900">
-                      {invoice.transactionId || transId || "Chưa có"}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-2 text-gray-700 font-medium">
-                      <Calendar className="w-4 h-4" />
-                      <span>Ngày thanh toán</span>
-                    </div>
-                    <div className="font-semibold text-gray-900">
-                      {formatDate(invoice.datePayment)}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center p-4 bg-gradient-to-r from-yellow-50 to-amber-50">
-                    <div className="flex items-center gap-2 text-gray-900 font-bold">
-                      <Tag className="w-5 h-5" />
-                      <span>Tổng tiền</span>
-                    </div>
-                    <div className="text-2xl font-bold text-red-600">
-                      {formatMoney(invoice.totalPrice)}
-                    </div>
-                  </div>
-
-                  {/* Customer Info */}
-                  <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-2 text-gray-700 font-medium">
-                      <User className="w-4 h-4" />
-                      <span>Người đặt</span>
-                    </div>
-                    <div className="font-semibold text-gray-900">
-                      {invoice.nameOfUser}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-2 text-gray-700 font-medium">
-                      <Phone className="w-4 h-4" />
-                      <span>SĐT</span>
-                    </div>
-                    <div className="font-semibold text-gray-900">
-                      {invoice.phoneNumber}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-2 text-gray-700 font-medium">
-                      <Mail className="w-4 h-4" />
-                      <span>Email</span>
-                    </div>
-                    <div className="font-semibold text-gray-900">
-                      {invoice.email}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-start p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-2 text-gray-700 font-medium">
-                      <MapPin className="w-4 h-4" />
-                      <span>Địa chỉ</span>
-                    </div>
-                    <div className="font-semibold text-gray-900 text-right max-w-md">
-                      {`${invoice.address || ""}, ${
-                        invoice.ward?.name_with_type || ""
-                      }, ${invoice.province?.name_with_type || ""}`.trim()}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-2 text-gray-700 font-medium">
-                      <Calendar className="w-4 h-4" />
-                      <span>Ngày khởi hành</span>
-                    </div>
-                    <div className="font-semibold text-gray-900">
-                      {formatDate(invoice.departureDate)}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-2 text-gray-700 font-medium">
-                      <Users className="w-4 h-4" />
-                      <span>Tổng số khách</span>
-                    </div>
-                    <div className="font-semibold text-gray-900">
-                      {invoice.totalPeople}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-start p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-2 text-gray-700 font-medium">
-                      <Armchair className="w-4 h-4" />
-                      <span>Ghế cơ bản</span>
-                    </div>
-                    <div>{renderSeatList(invoice.seatFor)}</div>
-                  </div>
-
-                  <div className="flex justify-between items-start p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-2 text-gray-700 font-medium">
-                      <Armchair className="w-4 h-4" />
-                      <span>Ghế thêm</span>
-                    </div>
-                    <div>{renderSeatList(invoice.seatAddFor, true)}</div>
-                  </div>
-
-                  <div className="flex justify-between items-start p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center gap-2 text-gray-700 font-medium">
-                      <StickyNote className="w-4 h-4" />
-                      <span>Ghi chú</span>
-                    </div>
-                    <div className="font-semibold text-gray-900 text-right max-w-md">
-                      {invoice.note || "Không có"}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Footer */}
-          <div className="p-6 bg-gray-50 flex flex-wrap gap-3 justify-center border-t border-gray-200">
-            <button
-              onClick={handleHome}
-              className="flex items-center gap-2 px-6 py-3 bg-white border-2 border-gray-300 text-gray-700 rounded-lg font-semibold hover:bg-gray-100 hover:border-gray-400 transition-all"
-            >
-              <Home className="w-4 h-4" />
-              <span>Trang chủ</span>
-            </button>
-
-            <button
-              onClick={handleSendEmail}
-              disabled={sendingEmail}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
-            >
-              <Mail className="w-4 h-4" />
-              <span>Gửi email</span>
-            </button>
-
-            <button
-              onClick={handlePrintPDF}
-              disabled={printing || !invoice}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg font-semibold hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
-            >
-              <FileText className="w-4 h-4" />
-              <span>Xuất PDF</span>
-            </button>
+          <div className="text-center mt-8 text-gray-600">
+            Cảm ơn bạn đã quan tâm đến dịch vụ - Chúng tôi sẽ liên hệ sớm nhất
+            với bạn!
           </div>
         </div>
 
-        <div className="text-center mt-8 text-gray-600">
-          Cảm ơn bạn đã quan tâm đến dịch vụ - Chúng tôi sẽ liên hệ sớm nhất với
-          bạn!
-        </div>
+        {/* Loading Modals */}
+        <LoadingModal
+          open={sendingEmail}
+          message="Đang gửi email..."
+          icon="Mail"
+        />
+        <LoadingModal
+          open={printing}
+          message="Đang tạo file PDF..."
+          icon="FileText"
+        />
       </div>
+    </>
+  );
+}
 
-      {/* Loading Modals */}
-      <LoadingModal
-        open={sendingEmail}
-        message="Đang gửi email..."
-        icon="Mail"
-      />
-      <LoadingModal
-        open={printing}
-        message="Đang tạo file PDF..."
-        icon="FileText"
-      />
-    </div>
+export default function MomoPaymentResultPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+          <p className="text-gray-600">Đang tải...</p>
+        </div>
+      }
+    >
+      <MomoPaymentResultContent />
+    </Suspense>
   );
 }
