@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { io } from "socket.io-client";
 import {
   Send,
@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { selectAndUploadImages } from "@/lib/utils/imageUpload.utils";
+import ChatInitializer from "./ChatInitializer"; // Import component mới
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
@@ -21,7 +22,6 @@ let socket = null;
 const ChatPage = () => {
   const params = useParams();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { user, loading: authLoading } = useAuth();
 
   const chatId = params?.chatId;
@@ -254,14 +254,7 @@ const ChatPage = () => {
     }
   }, [chatId, isMobile, user, loadChatDetail]);
 
-  useEffect(() => {
-    const otherUserId = searchParams?.get("userId");
-
-    if (otherUserId && !chatId && user) {
-      console.log("📧 Creating/getting chat with user:", otherUserId);
-      createOrGetChat(otherUserId);
-    }
-  }, [searchParams, chatId, user, createOrGetChat]);
+  // XÓA useEffect cũ sử dụng searchParams ở đây
 
   const sendMessage = async (e) => {
     e.preventDefault();
@@ -397,273 +390,286 @@ const ChatPage = () => {
   };
 
   return (
-    <div className="flex h-[800px] bg-white overflow-hidden rounded-xl border border-gray-200 shadow-sm">
-      {/* Sidebar */}
-      <div
-        className={`w-[360px] border-r border-gray-200 flex flex-col bg-white transition-all duration-300 ${
-          showSidebar ? "" : "hidden md:flex"
-        } ${isMobile && !showSidebar ? "hidden" : ""}`}
-      >
-        <div className="p-4 border-b border-gray-200">
-          <h2 className="text-2xl font-bold text-gray-900 m-0">Đoạn chat</h2>
+    <>
+      {/* Wrap ChatInitializer trong Suspense */}
+      <Suspense fallback={null}>
+        <ChatInitializer
+          createOrGetChat={createOrGetChat}
+          chatId={chatId}
+          user={user}
+        />
+      </Suspense>
+
+      <div className="flex h-[800px] bg-white overflow-hidden rounded-xl border border-gray-200 shadow-sm">
+        {/* Sidebar */}
+        <div
+          className={`w-[360px] border-r border-gray-200 flex flex-col bg-white transition-all duration-300 ${
+            showSidebar ? "" : "hidden md:flex"
+          } ${isMobile && !showSidebar ? "hidden" : ""}`}
+        >
+          <div className="p-4 border-b border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900 m-0">Đoạn chat</h2>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            {chats.map((chat) => (
+              <div
+                key={chat.chatId}
+                className={`flex items-center p-3 cursor-pointer transition-colors ${
+                  chatId === chat.chatId ? "bg-blue-50" : "hover:bg-gray-100"
+                }`}
+                onClick={() => {
+                  router.push(`/user/chat/${chat.chatId}`);
+                  if (isMobile) setShowSidebar(false);
+                }}
+              >
+                <div className="w-14 h-14 mr-3 shrink-0">
+                  <img
+                    src={chat.otherUser.avatar || "/default-avatar.png"}
+                    alt={chat.otherUser.name}
+                    className="w-full h-full rounded-full object-cover"
+                  />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-[15px] mb-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-gray-900">
+                    {chat.otherUser.name}
+                  </div>
+                  <div className="text-[13px] text-gray-600 overflow-hidden text-ellipsis whitespace-nowrap">
+                    {chat.lastMessage?.isMe && "Bạn: "}
+                    {formatMessagePreview(chat.lastMessage)}
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-end ml-2">
+                  <div className="text-xs text-gray-600 mb-1">
+                    {formatTime(chat.updatedAt)}
+                  </div>
+                  {chat.unreadCount > 0 && (
+                    <div className="bg-blue-600 text-white rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center text-xs font-semibold">
+                      {chat.unreadCount}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {chats.length === 0 && (
+              <div className="p-8 text-center text-gray-600 text-[15px]">
+                Chưa có đoạn chat nào
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          {chats.map((chat) => (
-            <div
-              key={chat.chatId}
-              className={`flex items-center p-3 cursor-pointer transition-colors ${
-                chatId === chat.chatId ? "bg-blue-50" : "hover:bg-gray-100"
-              }`}
-              onClick={() => {
-                router.push(`/user/chat/${chat.chatId}`);
-                if (isMobile) setShowSidebar(false);
-              }}
-            >
-              <div className="w-14 h-14 mr-3 shrink-0">
-                <img
-                  src={chat.otherUser.avatar || "/default-avatar.png"}
-                  alt={chat.otherUser.name}
-                  className="w-full h-full rounded-full object-cover"
-                />
+        {/* Chat Content */}
+        <div className="flex-1 flex flex-col bg-white min-w-0">
+          {!chatId ? (
+            <div className="flex-1 flex items-center justify-center text-gray-600 text-base">
+              <p>Chọn một đoạn chat để bắt đầu nhắn tin</p>
+            </div>
+          ) : (
+            <>
+              {/* Header */}
+              <div className="flex items-center p-3 border-b border-gray-200 bg-white">
+                {isMobile && (
+                  <button
+                    className="p-2 mr-2 rounded-full hover:bg-gray-100 text-gray-900"
+                    onClick={() => {
+                      setShowSidebar(true);
+                      router.push("/user/chat");
+                    }}
+                  >
+                    <ArrowLeft size={20} />
+                  </button>
+                )}
+
+                <div className="flex items-center flex-1 min-w-0">
+                  <img
+                    src={activeChat?.otherUser.avatar || "/default-avatar.png"}
+                    alt={activeChat?.otherUser.name}
+                    className="w-10 h-10 rounded-full mr-3 object-cover"
+                  />
+                  <div className="font-semibold text-[15px] text-gray-900 truncate">
+                    {activeChat?.otherUser.name}
+                  </div>
+                </div>
+
+                <button
+                  className="p-2 rounded-full hover:bg-gray-100 text-gray-600"
+                  onClick={() => setShowNicknameModal(true)}
+                  title="Đặt biệt danh"
+                >
+                  <Edit size={18} />
+                </button>
               </div>
 
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-[15px] mb-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-gray-900">
-                  {chat.otherUser.name}
-                </div>
-                <div className="text-[13px] text-gray-600 overflow-hidden text-ellipsis whitespace-nowrap">
-                  {chat.lastMessage?.isMe && "Bạn: "}
-                  {formatMessagePreview(chat.lastMessage)}
-                </div>
-              </div>
-
-              <div className="flex flex-col items-end ml-2">
-                <div className="text-xs text-gray-600 mb-1">
-                  {formatTime(chat.updatedAt)}
-                </div>
-                {chat.unreadCount > 0 && (
-                  <div className="bg-blue-600 text-white rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center text-xs font-semibold">
-                    {chat.unreadCount}
+              {/* Messages */}
+              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2 bg-white">
+                {loading && (
+                  <div className="text-center p-5 text-gray-600">
+                    Đang tải...
                   </div>
                 )}
-              </div>
-            </div>
-          ))}
 
-          {chats.length === 0 && (
-            <div className="p-8 text-center text-gray-600 text-[15px]">
-              Chưa có đoạn chat nào
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Chat Content */}
-      <div className="flex-1 flex flex-col bg-white min-w-0">
-        {!chatId ? (
-          <div className="flex-1 flex items-center justify-center text-gray-600 text-base">
-            <p>Chọn một đoạn chat để bắt đầu nhắn tin</p>
-          </div>
-        ) : (
-          <>
-            {/* Header */}
-            <div className="flex items-center p-3 border-b border-gray-200 bg-white">
-              {isMobile && (
-                <button
-                  className="p-2 mr-2 rounded-full hover:bg-gray-100 text-gray-900"
-                  onClick={() => {
-                    setShowSidebar(true);
-                    router.push("/user/chat");
-                  }}
-                >
-                  <ArrowLeft size={20} />
-                </button>
-              )}
-
-              <div className="flex items-center flex-1 min-w-0">
-                <img
-                  src={activeChat?.otherUser.avatar || "/default-avatar.png"}
-                  alt={activeChat?.otherUser.name}
-                  className="w-10 h-10 rounded-full mr-3 object-cover"
-                />
-                <div className="font-semibold text-[15px] text-gray-900 truncate">
-                  {activeChat?.otherUser.name}
-                </div>
-              </div>
-
-              <button
-                className="p-2 rounded-full hover:bg-gray-100 text-gray-600"
-                onClick={() => setShowNicknameModal(true)}
-                title="Đặt biệt danh"
-              >
-                <Edit size={18} />
-              </button>
-            </div>
-
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-2 bg-white">
-              {loading && (
-                <div className="text-center p-5 text-gray-600">Đang tải...</div>
-              )}
-
-              {messages.map((msg) => (
-                <div
-                  key={msg._id}
-                  className={`flex items-end gap-2 ${
-                    msg.sender._id === user._id ? "flex-row-reverse" : ""
-                  }`}
-                >
-                  {msg.sender._id !== user._id && (
-                    <img
-                      src={msg.sender.avatar || "/default-avatar.png"}
-                      alt={msg.sender.userName}
-                      className="w-7 h-7 rounded-full object-cover flex-shrink-0"
-                    />
-                  )}
-
+                {messages.map((msg) => (
                   <div
-                    className={`max-w-[60%] p-2 px-3 rounded-[18px] break-words ${
-                      msg.sender._id === user._id
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-900"
+                    key={msg._id}
+                    className={`flex items-end gap-2 ${
+                      msg.sender._id === user._id ? "flex-row-reverse" : ""
                     }`}
                   >
-                    {msg.type === "image" ? (
-                      <div className="max-w-[300px] rounded-xl overflow-hidden cursor-pointer">
-                        <img
-                          src={msg.content}
-                          alt="Attachment"
-                          className="w-full h-auto block"
-                          onClick={() => window.open(msg.content, "_blank")}
-                        />
-                      </div>
-                    ) : (
-                      <div className="text-[15px] leading-[1.4] break-words">
-                        {msg.content}
-                        {msg.edited && (
-                          <span className="text-xs opacity-70 italic">
-                            {" "}
-                            (đã chỉnh sửa)
-                          </span>
-                        )}
-                      </div>
+                    {msg.sender._id !== user._id && (
+                      <img
+                        src={msg.sender.avatar || "/default-avatar.png"}
+                        alt={msg.sender.userName}
+                        className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                      />
                     )}
-                    <div className="text-[11px] mt-1 opacity-70">
-                      {new Date(msg.createdAt).toLocaleTimeString("vi-VN", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+
+                    <div
+                      className={`max-w-[60%] p-2 px-3 rounded-[18px] break-words ${
+                        msg.sender._id === user._id
+                          ? "bg-blue-600 text-white"
+                          : "bg-gray-100 text-gray-900"
+                      }`}
+                    >
+                      {msg.type === "image" ? (
+                        <div className="max-w-[300px] rounded-xl overflow-hidden cursor-pointer">
+                          <img
+                            src={msg.content}
+                            alt="Attachment"
+                            className="w-full h-auto block"
+                            onClick={() => window.open(msg.content, "_blank")}
+                          />
+                        </div>
+                      ) : (
+                        <div className="text-[15px] leading-[1.4] break-words">
+                          {msg.content}
+                          {msg.edited && (
+                            <span className="text-xs opacity-70 italic">
+                              {" "}
+                              (đã chỉnh sửa)
+                            </span>
+                          )}
+                        </div>
+                      )}
+                      <div className="text-[11px] mt-1 opacity-70">
+                        {new Date(msg.createdAt).toLocaleTimeString("vi-VN", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
 
-              {typing && (
-                <div className="flex items-center gap-1 p-2 px-3 bg-gray-100 rounded-[18px] w-fit">
-                  <span className="w-2 h-2 rounded-full bg-gray-600 animate-pulse" />
-                  <span className="w-2 h-2 rounded-full bg-gray-600 animate-pulse" />
-                  <span className="w-2 h-2 rounded-full bg-gray-600 animate-pulse" />
-                </div>
-              )}
+                {typing && (
+                  <div className="flex items-center gap-1 p-2 px-3 bg-gray-100 rounded-[18px] w-fit">
+                    <span className="w-2 h-2 rounded-full bg-gray-600 animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-gray-600 animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-gray-600 animate-pulse" />
+                  </div>
+                )}
 
-              {uploading && (
-                <div className="p-2 px-3 bg-blue-50 text-blue-600 rounded-[18px] w-fit text-[13px]">
-                  Đang tải ảnh lên...
-                </div>
-              )}
+                {uploading && (
+                  <div className="p-2 px-3 bg-blue-50 text-blue-600 rounded-[18px] w-fit text-[13px]">
+                    Đang tải ảnh lên...
+                  </div>
+                )}
 
-              <div ref={messagesEndRef} />
-            </div>
+                <div ref={messagesEndRef} />
+              </div>
 
-            {/* Input */}
-            <form
-              className="flex items-center gap-2 p-3 border-t border-gray-200 bg-white"
-              onSubmit={sendMessage}
+              {/* Input */}
+              <form
+                className="flex items-center gap-2 p-3 border-t border-gray-200 bg-white"
+                onSubmit={sendMessage}
+              >
+                <button
+                  type="button"
+                  className="p-2 rounded-full hover:bg-gray-100 text-blue-600"
+                  onClick={handleSendImage}
+                  disabled={uploading}
+                  title="Gửi ảnh"
+                >
+                  <ImageIcon size={20} />
+                </button>
+
+                <button
+                  type="button"
+                  className="p-2 rounded-full hover:bg-gray-100 text-blue-600"
+                  disabled
+                >
+                  <Paperclip size={20} />
+                </button>
+
+                <input
+                  type="text"
+                  value={newMessage}
+                  onChange={handleTyping}
+                  placeholder="Aa"
+                  className="flex-1 py-2.5 px-4 border-none rounded-[20px] bg-gray-100 text-[15px] outline-none focus:bg-gray-200"
+                  disabled={uploading}
+                />
+
+                <button
+                  type="button"
+                  className="p-2 rounded-full hover:bg-gray-100 text-blue-600"
+                  disabled
+                >
+                  <Smile size={20} />
+                </button>
+
+                <button
+                  type="submit"
+                  className="p-2 rounded-full hover:bg-gray-100 text-blue-600 disabled:opacity-50"
+                  disabled={!newMessage.trim() || uploading}
+                >
+                  <Send size={18} />
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+
+        {/* Nickname Modal */}
+        {showNicknameModal && (
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]"
+            onClick={() => setShowNicknameModal(false)}
+          >
+            <div
+              className="bg-white p-6 rounded-xl w-[400px] max-w-[90%]"
+              onClick={(e) => e.stopPropagation()}
             >
-              <button
-                type="button"
-                className="p-2 rounded-full hover:bg-gray-100 text-blue-600"
-                onClick={handleSendImage}
-                disabled={uploading}
-                title="Gửi ảnh"
-              >
-                <ImageIcon size={20} />
-              </button>
-
-              <button
-                type="button"
-                className="p-2 rounded-full hover:bg-gray-100 text-blue-600"
-                disabled
-              >
-                <Paperclip size={20} />
-              </button>
-
+              <h3 className="text-xl font-semibold mb-4 mt-0">Đặt biệt danh</h3>
               <input
                 type="text"
-                value={newMessage}
-                onChange={handleTyping}
-                placeholder="Aa"
-                className="flex-1 py-2.5 px-4 border-none rounded-[20px] bg-gray-100 text-[15px] outline-none focus:bg-gray-200"
-                disabled={uploading}
+                value={nickname}
+                onChange={(e) => setNickname(e.target.value)}
+                placeholder="Nhập biệt danh"
+                className="w-full p-3 border border-gray-200 rounded-lg text-[15px] mb-4 outline-none focus:border-blue-600"
               />
-
-              <button
-                type="button"
-                className="p-2 rounded-full hover:bg-gray-100 text-blue-600"
-                disabled
-              >
-                <Smile size={20} />
-              </button>
-
-              <button
-                type="submit"
-                className="p-2 rounded-full hover:bg-gray-100 text-blue-600 disabled:opacity-50"
-                disabled={!newMessage.trim() || uploading}
-              >
-                <Send size={18} />
-              </button>
-            </form>
-          </>
-        )}
-      </div>
-
-      {/* Nickname Modal */}
-      {showNicknameModal && (
-        <div
-          className="fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]"
-          onClick={() => setShowNicknameModal(false)}
-        >
-          <div
-            className="bg-white p-6 rounded-xl w-[400px] max-w-[90%]"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-xl font-semibold mb-4 mt-0">Đặt biệt danh</h3>
-            <input
-              type="text"
-              value={nickname}
-              onChange={(e) => setNickname(e.target.value)}
-              placeholder="Nhập biệt danh"
-              className="w-full p-3 border border-gray-200 rounded-lg text-[15px] mb-4 outline-none focus:border-blue-600"
-            />
-            <div className="flex gap-2 justify-end">
-              <button
-                onClick={() => setShowNicknameModal(false)}
-                className="py-2.5 px-5 border-none rounded-lg text-[15px] font-semibold bg-gray-200 text-gray-900 hover:bg-gray-300"
-              >
-                Hủy
-              </button>
-              <button
-                onClick={handleSetNickname}
-                className="py-2.5 px-5 border-none rounded-lg text-[15px] font-semibold bg-blue-600 text-white hover:bg-blue-700"
-              >
-                Lưu
-              </button>
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => setShowNicknameModal(false)}
+                  className="py-2.5 px-5 border-none rounded-lg text-[15px] font-semibold bg-gray-200 text-gray-900 hover:bg-gray-300"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleSetNickname}
+                  className="py-2.5 px-5 border-none rounded-lg text-[15px] font-semibold bg-blue-600 text-white hover:bg-blue-700"
+                >
+                  Lưu
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   );
 };
 
