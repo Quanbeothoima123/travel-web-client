@@ -30,7 +30,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
 
   return (
     <div
-      className="fixed inset-0 bg-black/45 flex justify-center items-center z-[2000] animate-fadeIn"
+      className="fixed inset-0 bg-black/45 flex justify-center items-center z-2000 animate-fadeIn"
       onClick={onClose}
     >
       <div

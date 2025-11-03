@@ -181,13 +181,13 @@ const Header = () => {
               <>
                 <Link
                   href="/login"
-                  className="px-4 py-2 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-all duration-200"
+                  className="cursor-pointer px-4 py-2 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-all duration-200"
                 >
                   Đăng nhập
                 </Link>
                 <Link
                   href="/register"
-                  className="px-4 py-2 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-all duration-200"
+                  className="cursor-pointer px-4 py-2 text-sm font-medium text-primary border border-primary rounded-lg hover:bg-primary hover:text-white transition-all duration-200"
                 >
                   Đăng ký
                 </Link>
@@ -195,7 +195,7 @@ const Header = () => {
             ) : (
               <div ref={userMenuRef} className="relative">
                 <button
-                  className="flex items-center gap-2 px-3 py-2 bg-white border-2 border-gray-200 rounded-lg hover:shadow-sm transition-all duration-150"
+                  className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-white border-2 border-gray-200 rounded-lg hover:shadow-sm transition-all duration-150"
                   type="button"
                   onClick={handleToggleUserMenu}
                 >
