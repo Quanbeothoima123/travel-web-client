@@ -23,7 +23,9 @@ export default function CategoryTreeSelect({
     const fetchCategories = async () => {
       try {
         setLoading(true);
-        const res = await fetch(fetchUrl);
+        const res = await fetch(fetchUrl, {
+          credentials: "include",
+        });
         const data = await res.json();
         if (mounted) {
           setTree(Array.isArray(data) ? data : []);
