@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import FriendCard from "./FriendCard";
 import RequestCard from "./RequestCard";
 import BlockedCard from "./BlockedCard";
 import SuggestedFriendCard from "./SuggestedFriendCard";
-
+import { useToast } from "@/contexts/ToastContext";
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
 const FriendsList = ({ activeTab, filters, onDataChange }) => {
+  const { showToast } = useToast();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -37,19 +37,19 @@ const FriendsList = ({ activeTab, filters, onDataChange }) => {
 
       switch (activeTab) {
         case "friends":
-          endpoint = `/api/v1/user/friends?${queryParams}`;
+          endpoint = `/api/v1/friends?${queryParams}`;
           break;
         case "suggestions":
-          endpoint = `/api/v1/user/friends/suggestions?${queryParams}`;
+          endpoint = `/api/v1/friends/suggestions?${queryParams}`;
           break;
         case "received":
-          endpoint = `/api/v1/user/friend-requests/received?${queryParams}`;
+          endpoint = `/api/v1/friends/friend-requests/received?${queryParams}`;
           break;
         case "sent":
-          endpoint = `/api/v1/user/friend-requests/sent?${queryParams}`;
+          endpoint = `/api/v1/friends/friend-requests/sent?${queryParams}`;
           break;
         case "blocked":
-          endpoint = `/api/v1/user/blocked?${queryParams}`;
+          endpoint = `/api/v1/friends/blocked?${queryParams}`;
           break;
         default:
           return;
@@ -87,7 +87,7 @@ const FriendsList = ({ activeTab, filters, onDataChange }) => {
 
     try {
       const response = await fetch(
-        `${API_BASE}/api/v1/user/friends/${friendId}`,
+        `${API_BASE}/api/v1/friends/un-friend${friendId}`,
         {
           method: "DELETE",
           credentials: "include",
@@ -98,17 +98,17 @@ const FriendsList = ({ activeTab, filters, onDataChange }) => {
 
       setData((prev) => prev.filter((item) => item._id !== friendId));
       onDataChange?.();
-      alert("Đã hủy kết bạn thành công!");
+      showToast("Đã hủy kết bạn thành công!", "success");
     } catch (error) {
       console.error("❌ Unfriend error:", error);
-      alert("Không thể hủy kết bạn");
+      showToast("Không thể hủy kết bạn", "error");
     }
   };
 
   const handleAcceptRequest = async (fromUserId) => {
     try {
       const response = await fetch(
-        `${API_BASE}/api/v1/user/friend-requests/accept`,
+        `${API_BASE}/api/v1/friends/friend-requests/accept`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -121,17 +121,17 @@ const FriendsList = ({ activeTab, filters, onDataChange }) => {
 
       setData((prev) => prev.filter((item) => item._id !== fromUserId));
       onDataChange?.();
-      alert("Đã chấp nhận lời mời kết bạn!");
+      showToast("Đã chấp nhận lời mời kết bạn!", "success");
     } catch (error) {
       console.error("❌ Accept request error:", error);
-      alert("Không thể chấp nhận lời mời");
+      showToast("Không thể chấp nhận lời mời", "error");
     }
   };
 
   const handleRejectRequest = async (fromUserId) => {
     try {
       const response = await fetch(
-        `${API_BASE}/api/v1/user/friend-requests/reject`,
+        `${API_BASE}/api/v1/friends/friend-requests/reject`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -146,14 +146,14 @@ const FriendsList = ({ activeTab, filters, onDataChange }) => {
       onDataChange?.();
     } catch (error) {
       console.error("❌ Reject request error:", error);
-      alert("Không thể từ chối lời mời");
+      showToast("Không thể từ chối lời mời", "error");
     }
   };
 
   const handleCancelRequest = async (toUserId) => {
     try {
       const response = await fetch(
-        `${API_BASE}/api/v1/user/friend-requests/cancel`,
+        `${API_BASE}/api/v1/friends/friend-requests/cancel`,
         {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
@@ -168,13 +168,13 @@ const FriendsList = ({ activeTab, filters, onDataChange }) => {
       onDataChange?.();
     } catch (error) {
       console.error("❌ Cancel request error:", error);
-      alert("Không thể hủy lời mời");
+      showToast("Không thể hủy lời mời", "error");
     }
   };
 
   const handleUnblock = async (targetUserId) => {
     try {
-      const response = await fetch(`${API_BASE}/api/v1/user/unblock`, {
+      const response = await fetch(`${API_BASE}/api/v1/friends/unblock`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -185,10 +185,10 @@ const FriendsList = ({ activeTab, filters, onDataChange }) => {
 
       setData((prev) => prev.filter((item) => item._id !== targetUserId));
       onDataChange?.();
-      alert("Đã bỏ chặn thành công!");
+      showToast("Đã bỏ chặn thành công!", "success");
     } catch (error) {
       console.error("❌ Unblock error:", error);
-      alert("Không thể bỏ chặn");
+      showToast("Không thể bỏ chặn", "error");
     }
   };
 
@@ -200,7 +200,7 @@ const FriendsList = ({ activeTab, filters, onDataChange }) => {
       };
 
       const response = await fetch(
-        `${API_BASE}/api/v1/user/friend-requests/send`,
+        `${API_BASE}/api/v1/friends/friend-requests/send`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -216,10 +216,10 @@ const FriendsList = ({ activeTab, filters, onDataChange }) => {
 
       setData((prev) => prev.filter((item) => item._id !== userId));
       onDataChange?.();
-      alert("Đã gửi lời mời kết bạn!");
+      showToast("Đã gửi lời mời kết bạn!", "success");
     } catch (error) {
       console.error("❌ Add friend error:", error);
-      alert(error.message || "Không thể gửi lời mời kết bạn");
+      showToast(error.message || "Không thể gửi lời mời kết bạn", "error");
     }
   };
 

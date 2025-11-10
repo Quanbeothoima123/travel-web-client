@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { MessageCircle, MoreVertical, User, UserX } from "lucide-react";
 import ConfirmModal from "@/components/common/ConfirmModal";
-
+import { useToast } from "@/contexts/ToastContext";
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
 const FriendCard = ({ friend, onUnfriend, onViewProfile }) => {
+  const { showToast } = useToast();
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -33,24 +34,27 @@ const FriendCard = ({ friend, onUnfriend, onViewProfile }) => {
     setIsCreatingChat(true);
 
     try {
-      const response = await fetch(`${API_BASE}/api/v1/chat/create-or-get`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ otherUserId: friend._id }),
-      });
+      const response = await fetch(
+        `${API_BASE}/api/v1/conversation/create-or-get`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ otherUserId: friend._id }),
+        }
+      );
 
       const result = await response.json();
 
       if (result.success) {
-        router.push(`/user/chat/${result.data.chatId}`);
+        router.push(`/user/chat/${result.data.conversationId}`);
       } else {
         console.error("❌ Create chat failed:", result);
-        alert("Không thể tạo đoạn chat. Vui lòng thử lại!");
+        showToast("Không thể tạo đoạn chat. Vui lòng thử lại!", "error");
       }
     } catch (error) {
       console.error("❌ Create chat error:", error);
-      alert("Đã xảy ra lỗi. Vui lòng thử lại!");
+      showToast("Đã xảy ra lỗi. Vui lòng thử lại!", "error");
     } finally {
       setTimeout(() => setIsCreatingChat(false), 2000);
     }
