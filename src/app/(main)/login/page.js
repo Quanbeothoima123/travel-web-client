@@ -32,7 +32,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-cyan-600 to-blue-400 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-r from-cyan-600 to-blue-400 relative overflow-hidden">
       {/* Background overlay */}
       <div className="absolute inset-0 bg-black/10"></div>
 
@@ -76,7 +76,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold py-3 rounded-lg transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+            className="w-full bg-linear-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-bold py-3 rounded-lg transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
           >
             {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>
