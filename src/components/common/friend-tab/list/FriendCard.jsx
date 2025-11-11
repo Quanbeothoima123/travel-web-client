@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { MessageCircle, MoreVertical, User, UserX } from "lucide-react";
 import ConfirmModal from "@/components/common/ConfirmModal";
 import { useToast } from "@/contexts/ToastContext";
+import { useAuth } from "@/contexts/AuthContext";
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
 const FriendCard = ({ friend, onUnfriend, onViewProfile }) => {
+  const { fetchWithAuth } = useAuth();
   const { showToast } = useToast();
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
@@ -34,18 +36,14 @@ const FriendCard = ({ friend, onUnfriend, onViewProfile }) => {
     setIsCreatingChat(true);
 
     try {
-      const response = await fetch(
+      const response = await fetchWithAuth(
         `${API_BASE}/api/v1/conversation/create-or-get`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify({ otherUserId: friend._id }),
         }
       );
-
       const result = await response.json();
-
       if (result.success) {
         router.push(`/user/chat/${result.data.conversationId}`);
       } else {

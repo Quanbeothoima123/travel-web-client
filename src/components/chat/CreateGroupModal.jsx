@@ -1,11 +1,18 @@
 // ========================================
 // components/chat/CreateGroupModal.jsx
 // ========================================
+"use client";
+
 import { useState, useEffect } from "react";
 import { X, Search, UserPlus, Camera } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/contexts/ToastContext";
 
 export default function CreateGroupModal({ onClose, onSuccess }) {
-  const [step, setStep] = useState(1); // 1: Select friends, 2: Group info
+  const { fetchWithAuth } = useAuth();
+  const { showToast } = useToast();
+
+  const [step, setStep] = useState(1);
   const [friends, setFriends] = useState([]);
   const [selectedFriends, setSelectedFriends] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -21,9 +28,8 @@ export default function CreateGroupModal({ onClose, onSuccess }) {
 
   const fetchFriends = async (pageNum = 1) => {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/v1/user/friends?page=${pageNum}&limit=50`,
-        { credentials: "include" }
+      const response = await fetchWithAuth(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/v1/friends/list?page=${pageNum}&limit=50`
       );
       const result = await response.json();
       if (result.success) {
@@ -37,6 +43,7 @@ export default function CreateGroupModal({ onClose, onSuccess }) {
       }
     } catch (error) {
       console.error("Fetch friends error:", error);
+      showToast("Không thể tải danh sách bạn bè", "error");
     }
   };
 
@@ -57,16 +64,17 @@ export default function CreateGroupModal({ onClose, onSuccess }) {
   };
 
   const handleCreateGroup = async () => {
-    if (!groupName.trim() || selectedFriends.length === 0) return;
+    if (!groupName.trim() || selectedFriends.length === 0) {
+      showToast("Vui lòng nhập tên nhóm và chọn thành viên", "warning");
+      return;
+    }
 
     setLoading(true);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/api/v1/group/create`,
+      const response = await fetchWithAuth(
+        `${process.env.NEXT_PUBLIC_API_BASE}/api/v1/group-chat/create`,
         {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
           body: JSON.stringify({
             name: groupName,
             memberIds: selectedFriends,
@@ -76,10 +84,14 @@ export default function CreateGroupModal({ onClose, onSuccess }) {
       );
       const result = await response.json();
       if (result.success) {
+        showToast("Tạo nhóm thành công!", "success");
         onSuccess(result.data._id);
+      } else {
+        showToast(result.error || "Không thể tạo nhóm", "error");
       }
     } catch (error) {
       console.error("Create group error:", error);
+      showToast("Đã xảy ra lỗi", "error");
     } finally {
       setLoading(false);
     }

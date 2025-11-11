@@ -1,7 +1,7 @@
 // ========================================
 // components/chat/MessageBubble.jsx
 // ========================================
-import { Reply, Trash2, MoreVertical } from "lucide-react";
+import { Reply, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -20,11 +20,11 @@ export default function MessageBubble({
 
   if (isDeleted) return null;
 
-  // Check if should show avatar (first message in a sequence or different sender)
+  // Check if should show avatar
   const showAvatar =
     !prevMessage ||
     prevMessage.senderId._id !== message.senderId._id ||
-    new Date(message.createdAt) - new Date(prevMessage.createdAt) > 60000; // 1 minute gap
+    new Date(message.createdAt) - new Date(prevMessage.createdAt) > 60000;
 
   return (
     <div
@@ -32,7 +32,7 @@ export default function MessageBubble({
         !showAvatar && !isOwnMessage ? "ml-12" : ""
       }`}
     >
-      {/* Avatar (for group chat and other's messages) */}
+      {/* Avatar */}
       {!isOwnMessage && isGroup && showAvatar && (
         <img
           src={message.senderId.avatar || "/default-avatar.png"}
@@ -43,7 +43,7 @@ export default function MessageBubble({
       {!isOwnMessage && isGroup && !showAvatar && <div className="w-8 mr-2" />}
 
       <div className={`max-w-md ${isOwnMessage ? "items-end" : "items-start"}`}>
-        {/* Sender name (for group chat) */}
+        {/* Sender name */}
         {!isOwnMessage && isGroup && showAvatar && (
           <p className="text-xs text-gray-600 mb-1 ml-1">
             {message.senderId.customName || message.senderId.userName}
@@ -52,7 +52,7 @@ export default function MessageBubble({
 
         {/* Reply To */}
         {message.replyTo && (
-          <div className="bg-gray-200 rounded-lg p-2 mb-1 text-xs">
+          <div className="bg-gray-200 rounded-lg p-2 mb-1 text-xs max-w-xs">
             <p className="font-semibold text-gray-700">
               {message.replyTo.senderId?.customName || "Người dùng"}
             </p>

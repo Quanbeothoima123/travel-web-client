@@ -37,7 +37,7 @@ const FriendsList = ({ activeTab, filters, onDataChange }) => {
 
       switch (activeTab) {
         case "friends":
-          endpoint = `/api/v1/friends?${queryParams}`;
+          endpoint = `/api/v1/friends/list?${queryParams}`;
           break;
         case "suggestions":
           endpoint = `/api/v1/friends/suggestions?${queryParams}`;
