@@ -1,33 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
+import { useAuth } from "@/contexts/AuthContext"; // ← Import useAuth
 
 export default function UserLayout({ children }) {
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userAvatar, setUserAvatar] = useState("/default-avatar.png");
+  const { user } = useAuth(); // ← Lấy user từ AuthContext
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
 
-  useEffect(() => {
-    const fetchAvatar = async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/v1/user/profile`, {
-          credentials: "include",
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setUserAvatar(data?.avatar || "/default-avatar.png");
-        }
-      } catch {}
-    };
-    fetchAvatar();
-  }, []);
+  // ← Lấy avatar trực tiếp từ user object, không cần fetch
+  const userAvatar = user?.avatar || "/default-avatar.png";
 
   const menuItems = [
     { label: "Thông tin cá nhân", path: "/user/profile" },
@@ -50,7 +37,7 @@ export default function UserLayout({ children }) {
   return (
     <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Desktop Sidebar - Fixed */}
-      <aside className="hidden lg:flex fixed top-0 bottom-0 left-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm flex-col p-5 z-[1002] overflow-y-auto">
+      <aside className="hidden lg:flex fixed top-0 bottom-0 left-0 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-sm flex-col p-5 z-1002 overflow-y-auto">
         <div className="flex justify-center mb-5">
           <img
             src={userAvatar}
@@ -81,7 +68,7 @@ export default function UserLayout({ children }) {
       </aside>
 
       {/* Mobile Topbar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center px-4 z-[1001]">
+      <div className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center px-4 z-1001">
         <button
           onClick={toggleSidebar}
           aria-label={sidebarOpen ? "Close menu" : "Open menu"}
@@ -100,7 +87,7 @@ export default function UserLayout({ children }) {
       {/* Mobile Sidebar */}
       {sidebarOpen && (
         <>
-          <aside className="lg:hidden fixed top-0 bottom-0 left-0 w-72 max-w-[92vw] bg-white dark:bg-gray-800 flex flex-col p-4 z-[1004] overflow-y-auto animate-sidebarSlideIn shadow-xl">
+          <aside className="lg:hidden fixed top-0 bottom-0 left-0 w-72 max-w-[92vw] bg-white dark:bg-gray-800 flex flex-col p-4 z-1004 overflow-y-auto animate-sidebarSlideIn shadow-xl">
             <button
               onClick={() => setSidebarOpen(false)}
               aria-label="Close sidebar"
@@ -140,7 +127,7 @@ export default function UserLayout({ children }) {
 
           <div
             onClick={toggleSidebar}
-            className="lg:hidden fixed inset-0 bg-black/35 z-[1000]"
+            className="lg:hidden fixed inset-0 bg-black/35 z-1000"
           />
         </>
       )}
