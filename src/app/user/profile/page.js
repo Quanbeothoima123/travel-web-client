@@ -6,10 +6,13 @@ import ProvinceSelect from "@/components/common/ProvinceSelect";
 import WardSelect from "@/components/common/WardSelect";
 import ImageUploader from "@/components/common/ImageUploader";
 import LoadingModal from "@/components/common/LoadingModal";
-
+import { useAuth } from "@/contexts/AuthContext"; // ← Import useAuth
+import { useToast } from "@/contexts/ToastContext";
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
 export default function UserProfilePage() {
+  const { updateUser: updateAuthUser } = useAuth(); // ← Lấy updateUser từ context
+  const { showToast } = useToast();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploadLoading, setUploadLoading] = useState(false);
@@ -48,19 +51,21 @@ export default function UserProfilePage() {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data?.message || "Cập nhật thất bại");
+        showToast(data?.message || "Cập nhật thất bại", "error");
         return;
       }
 
       if (data && (data._id || data.id || data.email)) {
         setUser(data);
+        // ← Cập nhật vào AuthContext để layout tự động update
+        updateAuthUser(data);
       } else {
         await refetchUserData();
       }
 
-      alert("Cập nhật thành công!");
+      showToast("Cập nhật thành công!", "success");
     } catch (err) {
-      alert(err.message || "Có lỗi xảy ra");
+      showToast(err.message || "Có lỗi xảy ra", "success");
     } finally {
       setSaving(false);
     }
@@ -96,7 +101,11 @@ export default function UserProfilePage() {
           <div className="flex flex-col items-center lg:w-48 gap-4">
             <div className="w-full">
               <ImageUploader
-                onUpload={(url) => setUser({ ...user, avatar: url })}
+                onUpload={(url) => {
+                  setUser({ ...user, avatar: url });
+                  // ← Cập nhật avatar ngay vào AuthContext khi upload xong
+                  updateAuthUser({ avatar: url });
+                }}
                 onUploadStart={() => setUploadLoading(true)}
                 onUploadEnd={() => setUploadLoading(false)}
                 multiple={false}
