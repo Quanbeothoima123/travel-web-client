@@ -25,7 +25,7 @@ export default function ReAuthPage() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/v1/user/reAuth`, {
+      const res = await fetch(`${API_BASE}/api/v1/auth/reauth`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
@@ -51,7 +51,7 @@ export default function ReAuthPage() {
     if (!userId || !email) return;
 
     try {
-      const res = await fetch(`${API_BASE}/api/v1/user/resendOtp`, {
+      const res = await fetch(`${API_BASE}/api/v1/auth/resend-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, email, type: "register" }),
@@ -77,7 +77,7 @@ export default function ReAuthPage() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/api/v1/user/reInfo`, {
+      const res = await fetch(`${API_BASE}/api/v1/auth/reinfo`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, fullName, password }),
