@@ -21,7 +21,7 @@ export const metadata = {
 // Server Component - fetch data phía server
 async function getTours(endpoint) {
   try {
-    const res = await fetch(`${API_BASE}/api/v1/${endpoint}`, {
+    const res = await fetch(`${API_BASE}/api/v1/tours/${endpoint}`, {
       next: { revalidate: 300 }, // Cache 5 phút
     });
 
