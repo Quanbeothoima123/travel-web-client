@@ -2,7 +2,7 @@ import { Roboto } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastProvider } from "@/contexts/ToastContext";
-
+import { SocketProvider } from "@/contexts/SocketContext";
 const roboto = Roboto({
   weight: ["300", "400", "500", "700"],
   subsets: ["latin", "vietnamese"],
@@ -20,7 +20,9 @@ export default function RootLayout({ children }) {
     <html lang="vi" className={roboto.variable} suppressHydrationWarning>
       <body className="font-sans antialiased">
         <ToastProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <SocketProvider>{children}</SocketProvider>
+          </AuthProvider>
         </ToastProvider>
       </body>
     </html>
