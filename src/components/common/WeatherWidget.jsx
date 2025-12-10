@@ -516,7 +516,7 @@ const WeatherWidget = () => {
             <button
               onClick={handleGetLocation}
               disabled={loading}
-              className="flex items-center justify-center gap-2 mx-6 mt-4 px-4 py-2.5 bg-white text-purple-600 border-2 border-purple-600 rounded-xl font-semibold text-sm hover:bg-purple-600 hover:text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer flex items-center justify-center gap-2 mx-6 mt-4 px-4 py-2.5 bg-white text-purple-600 border-2 border-purple-600 rounded-xl font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <MapPin size={16} />
               <span>Sử dụng vị trí hiện tại</span>
