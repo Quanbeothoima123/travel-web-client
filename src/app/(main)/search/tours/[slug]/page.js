@@ -29,11 +29,10 @@ export default function SearchTour() {
 
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState("");
 
-  // ✅ Tách riêng state cho form (chưa submit)
+  // Form state (chưa submit)
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [minPrice, setMinPrice] = useState("");
@@ -41,17 +40,6 @@ export default function SearchTour() {
   const [departPlace, setDepartPlace] = useState("");
   const [filters, setFilters] = useState([]);
   const [vehicles, setVehicles] = useState([]);
-
-  // ✅ State cho giá trị đã submit (trigger fetch)
-  const [appliedFilters, setAppliedFilters] = useState({
-    query: "",
-    category: null,
-    minPrice: "",
-    maxPrice: "",
-    departPlace: "",
-    filters: [],
-    vehicles: [],
-  });
 
   const [allFilters, setAllFilters] = useState([]);
   const [allVehicles, setAllVehicles] = useState([]);
@@ -66,7 +54,7 @@ export default function SearchTour() {
       try {
         const [filterRes, vehicleRes, departPlaceRes] = await Promise.all([
           fetch(`${API_BASE}/api/v1/filter/getAll`),
-          fetch(`${API_BASE}/api/v1/vehicle/getAll`),
+          fetch(`${API_BASE}/api/v1/vehicles`),
           fetch(`${API_BASE}/api/v1/depart-place/getAll`),
         ]);
         const filterData = await filterRes.json();
@@ -83,46 +71,15 @@ export default function SearchTour() {
     fetchOptions();
   }, []);
 
-  // Fetch category by slug from URL (chỉ khi slug thay đổi)
+  // Fetch category by slug from URL
   useEffect(() => {
     const categorySlug = params.slug;
-    if (categorySlug) {
+    if (categorySlug && categorySlug !== "tour-du-lich") {
       fetchCategoryBySlug(categorySlug);
+    } else {
+      setSelectedCategory(null);
     }
   }, [params.slug]);
-
-  // Initialize from URL params (chỉ 1 lần khi mount hoặc URL thay đổi)
-  useEffect(() => {
-    const q = searchParams.get("q") || "";
-    const min = searchParams.get("minPrice") || "";
-    const max = searchParams.get("maxPrice") || "";
-    const depart = searchParams.get("departPlace") || "";
-    const filterList = searchParams.getAll("filters") || [];
-    const vehicleList = searchParams.getAll("vehicles") || [];
-    const pageNum = parseInt(searchParams.get("page")) || 1;
-
-    // Set form values
-    setQuery(q);
-    setMinPrice(min);
-    setMaxPrice(max);
-    setDepartPlace(depart);
-    setFilters(filterList);
-    setVehicles(vehicleList);
-    setPage(pageNum);
-
-    // ✅ Set applied filters để trigger fetch
-    setAppliedFilters({
-      query: q,
-      category: null, // Sẽ được set bởi fetchCategoryBySlug
-      minPrice: min,
-      maxPrice: max,
-      departPlace: depart,
-      filters: filterList,
-      vehicles: vehicleList,
-    });
-
-    isInitialLoad.current = false;
-  }, [searchParams]);
 
   // Fetch category by slug
   const fetchCategoryBySlug = async (slug) => {
@@ -133,47 +90,62 @@ export default function SearchTour() {
       const data = await res.json();
       if (data.data) {
         setSelectedCategory(data.data);
-        // ✅ Update applied category
-        setAppliedFilters((prev) => ({
-          ...prev,
-          category: data.data,
-        }));
       }
     } catch (err) {
       console.error("Error fetching category:", err);
     }
   };
 
-  // ✅ Fetch tours CHỈ KHI appliedFilters hoặc page thay đổi
+  // ✅ MAIN FIX: Sync form state từ URL và fetch tours trong 1 effect
   useEffect(() => {
-    if (isInitialLoad.current) return;
+    const syncAndFetch = async () => {
+      // 1. Đọc tất cả params từ URL
+      const q = searchParams.get("q") || "";
+      const min = searchParams.get("minPrice") || "";
+      const max = searchParams.get("maxPrice") || "";
+      const depart = searchParams.get("departPlace") || "";
+      const filterList = searchParams.getAll("filters") || [];
+      const vehicleList = searchParams.getAll("vehicles") || [];
+      const pageNum = parseInt(searchParams.get("page")) || 1;
 
-    const fetchTours = async () => {
+      // 2. Update form state (cho UI)
+      setQuery(q);
+      setMinPrice(min);
+      setMaxPrice(max);
+      setDepartPlace(depart);
+      setFilters(filterList);
+      setVehicles(vehicleList);
+
+      // 3. Skip fetch nếu là initial load
+      if (isInitialLoad.current) {
+        isInitialLoad.current = false;
+        return;
+      }
+
+      // 4. Fetch tours với params từ URL (không dùng state!)
       try {
         setLoading(true);
         const fetchParams = new URLSearchParams();
 
-        fetchParams.set("page", page);
+        fetchParams.set("page", pageNum.toString());
         fetchParams.set("limit", "12");
 
-        if (appliedFilters.query)
-          fetchParams.set("query", appliedFilters.query);
+        if (q) fetchParams.set("query", q);
 
-        const categorySlug = params.slug || appliedFilters.category?.slug;
-        if (categorySlug) fetchParams.set("category", categorySlug);
+        const categorySlug = params.slug;
+        if (categorySlug && categorySlug !== "tour-du-lich") {
+          fetchParams.set("category", categorySlug);
+        }
 
-        if (appliedFilters.minPrice)
-          fetchParams.set("minPrice", appliedFilters.minPrice);
-        if (appliedFilters.maxPrice)
-          fetchParams.set("maxPrice", appliedFilters.maxPrice);
-        if (appliedFilters.departPlace)
-          fetchParams.set("departPlace", appliedFilters.departPlace);
-        appliedFilters.filters.forEach((f) => fetchParams.append("filters", f));
-        appliedFilters.vehicles.forEach((v) =>
-          fetchParams.append("vehicles", v)
-        );
+        if (min) fetchParams.set("minPrice", min);
+        if (max) fetchParams.set("maxPrice", max);
+        if (depart) fetchParams.set("departPlace", depart);
+        filterList.forEach((f) => fetchParams.append("filters", f));
+        vehicleList.forEach((v) => fetchParams.append("vehicles", v));
 
         const url = `${API_BASE}/api/v1/tours/search-combined?${fetchParams.toString()}`;
+        console.log("🔍 Fetching:", url); // Debug log
+
         const res = await fetch(url);
         const data = await res.json();
 
@@ -181,13 +153,14 @@ export default function SearchTour() {
         setTotalPages(data.pagination?.totalPages || 1);
       } catch (err) {
         console.error("Error fetching tours:", err);
+        setTours([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchTours();
-  }, [appliedFilters, page, params.slug]); // ✅ CHỈ depend vào appliedFilters và page
+    syncAndFetch();
+  }, [searchParams, params.slug]); // ✅ CHỈ depend vào searchParams và params.slug
 
   // Sort tours
   const sortTours = (tours, sortBy) => {
@@ -207,7 +180,7 @@ export default function SearchTour() {
     }
   };
 
-  // ✅ Handle search: Update appliedFilters và navigate
+  // Handle search: Build new URL và navigate
   const handleSearch = () => {
     const searchParamsObj = new URLSearchParams();
 
@@ -221,19 +194,7 @@ export default function SearchTour() {
 
     const targetSlug = selectedCategory?.slug || params.slug || "tour-du-lich";
 
-    // ✅ Update applied filters trước khi navigate
-    setAppliedFilters({
-      query,
-      category: selectedCategory,
-      minPrice,
-      maxPrice,
-      departPlace,
-      filters: [...filters],
-      vehicles: [...vehicles],
-    });
-
     router.push(`/search/tours/${targetSlug}?${searchParamsObj.toString()}`);
-    setPage(1);
   };
 
   const toggleFilter = (slug) => {
@@ -248,10 +209,19 @@ export default function SearchTour() {
     );
   };
 
+  // Handle page change: Update URL
   const handlePageChange = (newPage) => {
-    setPage(newPage);
+    const searchParamsObj = new URLSearchParams(searchParams.toString());
+    searchParamsObj.set("page", newPage.toString());
+
+    const targetSlug = selectedCategory?.slug || params.slug || "tour-du-lich";
+    router.push(`/search/tours/${targetSlug}?${searchParamsObj.toString()}`);
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  // Get current page from URL (cho Pagination component)
+  const currentPage = parseInt(searchParams.get("page")) || 1;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -436,7 +406,7 @@ export default function SearchTour() {
 
           {/* Pagination */}
           <Pagination
-            currentPage={page}
+            currentPage={currentPage}
             totalPages={totalPages}
             onPageChange={handlePageChange}
           />
