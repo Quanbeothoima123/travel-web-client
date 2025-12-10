@@ -24,7 +24,7 @@ export default function UserProfilePage() {
 
   const refetchUserData = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/v1/user/profile`, {
+      const res = await fetch(`${API_BASE}/api/v1/users/profile`, {
         credentials: "include",
       });
       const data = res.ok ? await res.json() : null;
@@ -42,7 +42,7 @@ export default function UserProfilePage() {
     setSaving(true);
 
     try {
-      const res = await fetch(`${API_BASE}/api/v1/user/profile`, {
+      const res = await fetch(`${API_BASE}/api/v1/users/profile`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
