@@ -51,7 +51,7 @@ const NewsDetail = () => {
   // Fetch current user
   const fetchCurrentUser = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/v1/user/me`, {
+      const response = await fetch(`${API_BASE}/api/v1/users/me`, {
         method: "GET",
         credentials: "include",
         headers: {
@@ -114,7 +114,7 @@ const NewsDetail = () => {
   const loadStatusSavedForUser = async (newsId) => {
     try {
       const response = await fetch(
-        `${API_BASE}/api/v1/user-save/getStatusForNews/${newsId}`,
+        `${API_BASE}/api/v1/user-saves/status/news/${newsId}`,
         { credentials: "include" }
       );
       if (!response.ok) {
@@ -220,9 +220,7 @@ const NewsDetail = () => {
 
     try {
       const response = await fetch(
-        `${API_BASE}/api/v1/user-save/${savedStatus ? "add" : "delete"}/${
-          newsData._id
-        }`,
+        `${API_BASE}/api/v1/user-saves/news/${newsData._id}`,
         {
           method: savedStatus ? "POST" : "DELETE",
           credentials: "include",
@@ -270,7 +268,7 @@ const NewsDetail = () => {
       }
 
       const response = await fetch(
-        `${API_BASE}/api/v1/user-share/add/${newsData._id}`,
+        `${API_BASE}/api/v1/user-shares/news/${newsData._id}`,
         {
           method: "POST",
           credentials: "include",
