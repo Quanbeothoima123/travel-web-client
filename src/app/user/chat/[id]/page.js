@@ -1,34 +1,23 @@
-// ========================================
-// app/chat/[id]/page.jsx - Chat Conversation Page (FULL VERSION)
-// ========================================
+// app/chat/[id]/page.jsx - Chat Conversation Page (UPDATED)
 "use client";
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import {
-  ArrowLeft,
-  Send,
-  Smile,
-  Image as ImageIcon,
-  X,
-  Menu,
-  Info,
-} from "lucide-react";
-import { io } from "socket.io-client";
+import { ArrowLeft, Send, Smile, X, Menu, Info } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
+import { useSocket } from "@/contexts/SocketContext";
 import ConversationSidebar from "@/components/chat/ConversationSidebar";
 import MessageBubble from "@/components/chat/MessageBubble";
 import TypingIndicator from "@/components/chat/TypingIndicator";
 import EmojiPicker from "emoji-picker-react";
-
-let socket;
 
 export default function ChatConversationPage() {
   const params = useParams();
   const router = useRouter();
   const { userId, fetchWithAuth, user } = useAuth();
   const { showToast } = useToast();
+  const { socket, isConnected } = useSocket();
   const conversationId = params.id;
 
   const [messages, setMessages] = useState([]);
@@ -37,7 +26,7 @@ export default function ChatConversationPage() {
   const [loading, setLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(1);
-  const [typingUsers, setTypingUsers] = useState([]); //  Array of { userId, userInfo }
+  const [typingUsers, setTypingUsers] = useState([]);
   const [replyingTo, setReplyingTo] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(true);
@@ -48,27 +37,32 @@ export default function ChatConversationPage() {
   const inputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
-  // Initialize socket
+  // Join conversation room khi vào trang
   useEffect(() => {
-    if (!userId) return;
+    if (!socket || !isConnected || !conversationId) return;
 
-    socket = io(process.env.NEXT_PUBLIC_API_BASE, {
-      auth: { userId },
-    });
+    console.log("🚪 Joining conversation:", conversationId);
+    socket.emit("join-conversation", conversationId);
 
-    socket.on("connect", () => {
-      console.log("✅ Socket connected");
-      socket.emit("join-conversation", conversationId);
-    });
+    return () => {
+      console.log("🚪 Leaving conversation:", conversationId);
+      socket.emit("leave-conversation", conversationId);
+    };
+  }, [socket, isConnected, conversationId]);
 
-    socket.on("new-message", (message) => {
+  // Lắng nghe socket events
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    const handleNewMessage = (message) => {
+      console.log("📩 New message received:", message);
       setMessages((prev) => [...prev, message]);
       if (isAtBottom) {
         setTimeout(scrollToBottom, 100);
       }
-    });
+    };
 
-    socket.on("message-deleted", ({ messageId, userId: deleterId }) => {
+    const handleMessageDeleted = ({ messageId, userId: deleterId }) => {
       setMessages((prev) =>
         prev.map((msg) =>
           msg._id === messageId
@@ -76,44 +70,48 @@ export default function ChatConversationPage() {
             : msg
         )
       );
-    });
+    };
 
-    socket.on("message-edited", (updatedMessage) => {
+    const handleMessageEdited = (updatedMessage) => {
       setMessages((prev) =>
         prev.map((msg) =>
           msg._id === updatedMessage._id ? updatedMessage : msg
         )
       );
-    });
+    };
 
-    //  Fixed: Lưu object thay vì chỉ userId
-    socket.on("user-typing", ({ userId: typingUserId, userInfo }) => {
+    const handleUserTyping = ({ userId: typingUserId, userInfo }) => {
       if (typingUserId !== userId) {
         setTypingUsers((prev) => {
-          // Kiểm tra xem user này đã có trong danh sách chưa
           const existingIndex = prev.findIndex(
             (u) => u.userId === typingUserId
           );
-
           if (existingIndex === -1) {
-            // Thêm user mới với thông tin đầy đủ
             return [...prev, { userId: typingUserId, userInfo }];
           }
-
           return prev;
         });
       }
-    });
+    };
 
-    socket.on("user-stop-typing", ({ userId: typingUserId }) => {
+    const handleUserStopTyping = ({ userId: typingUserId }) => {
       setTypingUsers((prev) => prev.filter((u) => u.userId !== typingUserId));
-    });
+    };
+
+    socket.on("new-message", handleNewMessage);
+    socket.on("message-deleted", handleMessageDeleted);
+    socket.on("message-edited", handleMessageEdited);
+    socket.on("user-typing", handleUserTyping);
+    socket.on("user-stop-typing", handleUserStopTyping);
 
     return () => {
-      socket.emit("leave-conversation", conversationId);
-      socket.disconnect();
+      socket.off("new-message", handleNewMessage);
+      socket.off("message-deleted", handleMessageDeleted);
+      socket.off("message-edited", handleMessageEdited);
+      socket.off("user-typing", handleUserTyping);
+      socket.off("user-stop-typing", handleUserStopTyping);
     };
-  }, [conversationId, userId]);
+  }, [socket, isConnected, userId, isAtBottom]);
 
   // Fetch conversation detail
   useEffect(() => {
@@ -152,7 +150,14 @@ export default function ChatConversationPage() {
           setMessages(result.data.messages);
           setTimeout(scrollToBottom, 100);
         } else {
-          setMessages((prev) => [...result.data.messages, ...prev]);
+          // Loại bỏ tin nhắn trùng lặp khi load thêm
+          setMessages((prev) => {
+            const existingIds = new Set(prev.map((m) => m._id));
+            const newMessages = result.data.messages.filter(
+              (m) => !existingIds.has(m._id)
+            );
+            return [...newMessages, ...prev];
+          });
         }
         setHasMore(result.data.hasMore);
         setPage(pageNum);
@@ -170,7 +175,6 @@ export default function ChatConversationPage() {
     const atBottom = scrollHeight - scrollTop - clientHeight < 50;
     setIsAtBottom(atBottom);
 
-    // Load more when scrolling to top
     if (scrollTop === 0 && hasMore && !loading) {
       fetchMessages(page + 1);
     }
@@ -182,7 +186,7 @@ export default function ChatConversationPage() {
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!inputMessage.trim()) return;
+    if (!inputMessage.trim() || !socket) return;
 
     const messageData = {
       conversationId,
@@ -191,6 +195,7 @@ export default function ChatConversationPage() {
       replyTo: replyingTo?._id || null,
     };
 
+    console.log("📤 Sending message:", messageData);
     socket.emit("send-message", messageData);
     setInputMessage("");
     setReplyingTo(null);
@@ -198,8 +203,9 @@ export default function ChatConversationPage() {
     setTimeout(scrollToBottom, 100);
   };
 
-  //  Fixed: Gửi đầy đủ thông tin user khi typing
   const handleTyping = () => {
+    if (!socket) return;
+
     socket.emit("typing-start", {
       conversationId,
       userInfo: {
@@ -213,10 +219,11 @@ export default function ChatConversationPage() {
     clearTimeout(typingTimeoutRef.current);
     typingTimeoutRef.current = setTimeout(() => {
       socket.emit("typing-stop", { conversationId });
-    }, 300);
+    }, 500);
   };
 
   const handleDeleteMessage = (messageId) => {
+    if (!socket) return;
     socket.emit("delete-message", { messageId });
     showToast("Đã xóa tin nhắn", "success");
   };
@@ -236,7 +243,6 @@ export default function ChatConversationPage() {
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Mobile overlay for sidebar */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
@@ -244,13 +250,11 @@ export default function ChatConversationPage() {
         />
       )}
 
-      {/* Sidebar */}
       <ConversationSidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
 
-      {/* Main Chat Area */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 p-4 flex items-center justify-between">
@@ -284,6 +288,9 @@ export default function ChatConversationPage() {
                       <h2 className="font-semibold text-gray-900">
                         {conversation.otherUser?.name}
                       </h2>
+                      {isConnected && (
+                        <p className="text-xs text-green-600">Đang hoạt động</p>
+                      )}
                     </div>
                   </>
                 ) : (
@@ -338,7 +345,6 @@ export default function ChatConversationPage() {
             />
           ))}
 
-          {/* ✅ Typing Indicator với avatar */}
           {typingUsers.length > 0 && (
             <TypingIndicator
               typingUsers={typingUsers}
@@ -392,12 +398,13 @@ export default function ChatConversationPage() {
                 handleTyping();
               }}
               placeholder="Soạn tin nhắn"
-              className="flex-1 px-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500"
+              disabled={!isConnected}
+              className="flex-1 px-4 py-2 bg-gray-100 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
             />
 
             <button
               type="submit"
-              disabled={!inputMessage.trim()}
+              disabled={!inputMessage.trim() || !isConnected}
               className="p-2 bg-purple-600 text-white rounded-full hover:bg-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Send className="w-5 h-5" />
