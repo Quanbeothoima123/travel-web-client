@@ -6,20 +6,81 @@ import { useRouter, usePathname } from "next/navigation";
 import { Plus, Search, X } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
+import { useSocket } from "@/contexts/SocketContext";
 import ConversationList from "./ConversationList";
 import CreateGroupModal from "./CreateGroupModal";
 
 export default function ConversationSidebar({ isOpen, onClose }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { fetchWithAuth } = useAuth();
+  const { fetchWithAuth, userId } = useAuth();
   const { showToast } = useToast();
+  const { socket, isConnected } = useSocket();
 
   const [conversations, setConversations] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("friends"); // ← "friends" hoặc "groups"
+  const [activeTab, setActiveTab] = useState("friends");
+
+  // Lắng nghe socket events
+  useEffect(() => {
+    if (!socket || !isConnected) return;
+
+    console.log("🎧 Sidebar listening to socket events");
+
+    // Lắng nghe conversation-updated
+    const handleConversationUpdated = (data) => {
+      console.log("📨 Sidebar received conversation-updated:", data);
+
+      const { conversationId, lastMessage, unreadCount, lastMessageAt } = data;
+
+      setConversations((prevConversations) => {
+        const updatedConversations = prevConversations.map((conv) => {
+          if (conv.conversationId === conversationId) {
+            const updates = { ...conv };
+
+            // Cập nhật lastMessage nếu có
+            if (lastMessage) {
+              updates.lastMessage = {
+                content: lastMessage.content,
+                createdAt: lastMessage.createdAt,
+                isMe: lastMessage.senderId._id === userId,
+                type: lastMessage.type,
+              };
+            }
+
+            // Cập nhật unreadCount
+            if (unreadCount !== undefined) {
+              updates.unreadCount = unreadCount;
+            }
+
+            // Cập nhật lastMessageAt
+            if (lastMessageAt) {
+              updates.updatedAt = lastMessageAt;
+            }
+
+            return updates;
+          }
+          return conv;
+        });
+
+        // Sắp xếp lại theo thời gian
+        return updatedConversations.sort((a, b) => {
+          const timeA = new Date(a.updatedAt);
+          const timeB = new Date(b.updatedAt);
+          return timeB - timeA;
+        });
+      });
+    };
+
+    socket.on("conversation-updated", handleConversationUpdated);
+
+    // Cleanup
+    return () => {
+      socket.off("conversation-updated", handleConversationUpdated);
+    };
+  }, [socket, isConnected, userId]);
 
   useEffect(() => {
     fetchConversations();
@@ -46,7 +107,6 @@ export default function ConversationSidebar({ isOpen, onClose }) {
     conv.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Đếm số lượng cho mỗi tab
   const friendsCount = conversations.filter((c) => c.type === "private").length;
   const groupsCount = conversations.filter((c) => c.type === "group").length;
 
@@ -60,7 +120,16 @@ export default function ConversationSidebar({ isOpen, onClose }) {
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold text-gray-900">Tin nhắn</h1>
+            <div className="flex items-center space-x-2">
+              <h1 className="text-2xl font-bold text-gray-900">Tin nhắn</h1>
+              {/* Socket status indicator */}
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  isConnected ? "bg-green-500" : "bg-red-500"
+                }`}
+                title={isConnected ? "Connected" : "Disconnected"}
+              />
+            </div>
             <div className="flex items-center space-x-2">
               {activeTab === "groups" && (
                 <button
