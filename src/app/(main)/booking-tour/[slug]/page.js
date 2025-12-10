@@ -307,13 +307,14 @@ export default function BookingPage() {
 
       if (response.ok && data.success && data.invoice) {
         const inv = data.invoice;
+        // ✅ FIX: Redirect tới /payment/success thay vì /payment/momo/result
         const params = new URLSearchParams({
           orderId: inv._id || inv.id,
           resultCode: "0",
           orderInfo: `Thanh toán đơn hàng ${inv.invoiceCode || ""}`,
           transId: inv.transactionId || "",
         });
-        window.location.href = `/payment/momo/result?${params.toString()}`;
+        window.location.href = `/payment/success?${params.toString()}`;
       } else {
         showToast(data.message || "Đặt tour thất bại", "error");
       }
@@ -337,6 +338,7 @@ export default function BookingPage() {
       const data = await response.json();
 
       if (response.ok && data?.payUrl) {
+        // MoMo sẽ redirect trở lại sau khi thanh toán
         window.location.href = data.payUrl;
       } else {
         showToast(data?.message || "Không tạo được giao dịch MoMo", "error");
@@ -364,13 +366,14 @@ export default function BookingPage() {
 
       if (response.ok && data?.invoice) {
         const inv = data.invoice;
+        // ✅ FIX: Redirect tới /payment/success thay vì /payment/momo/result
         const params = new URLSearchParams({
           orderId: inv._id || inv.id,
           resultCode: "0",
           orderInfo: `Thanh toán đơn hàng ${inv.invoiceCode || ""}`,
           transId: inv.transactionId || "",
         });
-        window.location.href = `/payment/momo/result?${params.toString()}`;
+        window.location.href = `/payment/success?${params.toString()}`;
       } else {
         showToast(
           data?.message || "Không thể tạo hóa đơn thanh toán bằng thẻ",
