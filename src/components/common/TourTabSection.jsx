@@ -16,8 +16,8 @@ const TourTabSection = ({ domesticTours, aboardTours }) => {
           onClick={() => setActiveTab("domestic")}
           className={`relative px-5 py-2.5 text-base font-medium border-none bg-gray-50 cursor-pointer rounded-lg transition-all duration-300 ${
             activeTab === "domestic"
-              ? "text-gray-800 after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-[#000080]"
-              : "text-gray-500 hover:text-gray-800 hover:after:content-[''] hover:after:absolute hover:after:-bottom-1 hover:after:left-0 hover:after:w-full hover:after:h-0.5 hover:after:bg-[#000080]"
+              ? "text-gray-800 after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-primary"
+              : "text-gray-500 hover:text-gray-800 hover:after:content-[''] hover:after:absolute hover:after:-bottom-1 hover:after:left-0 hover:after:w-full hover:after:h-0.5 hover:after:bg-primary"
           }`}
         >
           Tour Trong Nước
@@ -26,8 +26,8 @@ const TourTabSection = ({ domesticTours, aboardTours }) => {
           onClick={() => setActiveTab("aboard")}
           className={`relative px-5 py-2.5 text-base font-medium border-none bg-gray-50 cursor-pointer rounded-lg transition-all duration-300 ${
             activeTab === "aboard"
-              ? "text-gray-800 after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-[#000080]"
-              : "text-gray-500 hover:text-gray-800 hover:after:content-[''] hover:after:absolute hover:after:-bottom-1 hover:after:left-0 hover:after:w-full hover:after:h-0.5 hover:after:bg-[#000080]"
+              ? "text-gray-800 after:content-[''] after:absolute after:-bottom-1 after:left-0 after:w-full after:h-0.5 after:bg-primary"
+              : "text-gray-500 hover:text-gray-800 hover:after:content-[''] hover:after:absolute hover:after:-bottom-1 hover:after:left-0 hover:after:w-full hover:after:h-0.5 hover:after:bg-primary"
           }`}
         >
           Tour Nước Ngoài
@@ -36,7 +36,7 @@ const TourTabSection = ({ domesticTours, aboardTours }) => {
 
       {/* Tour list */}
       <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-6 p-5 max-w-[1200px] mx-auto">
-        {displayTours.slice(0, 9).map((tour) => (
+        {displayTours.slice(0, 12).map((tour) => (
           <TourCard key={tour._id} tour={tour} />
         ))}
       </div>
