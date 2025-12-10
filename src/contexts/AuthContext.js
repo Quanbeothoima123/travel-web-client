@@ -24,7 +24,7 @@ export const AuthProvider = ({ children }) => {
   //  Làm mới access token (cả authToken và userRefreshToken đều từ cookie)
   const refreshAccessToken = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/v1/user/refresh-token`, {
+      const res = await fetch(`${API_BASE}/api/v1/auth/refresh-token`, {
         method: "POST",
         credentials: "include", // ← Cookie tự động gửi
         headers: {
@@ -99,7 +99,7 @@ export const AuthProvider = ({ children }) => {
   //  Đăng nhập
   const login = async ({ email, password }) => {
     try {
-      const res = await fetch(`${API_BASE}/api/v1/user/login`, {
+      const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
         method: "POST",
         credentials: "include", // ← Cho phép nhận cookie từ server
         headers: {
@@ -127,7 +127,7 @@ export const AuthProvider = ({ children }) => {
   //  Đăng xuất
   const logout = async () => {
     try {
-      await fetch(`${API_BASE}/api/v1/user/logout`, {
+      await fetch(`${API_BASE}/api/v1/auth/logout`, {
         method: "POST",
         credentials: "include", // ← Gửi cookie để server xóa
         headers: {
