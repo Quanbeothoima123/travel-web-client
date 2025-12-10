@@ -27,7 +27,7 @@ const FriendsPage = () => {
 
   const loadUserProfile = async () => {
     try {
-      const response = await fetch(`${API_BASE}/api/v1/user/profile`, {
+      const response = await fetch(`${API_BASE}/api/v1/users/profile`, {
         credentials: "include",
       });
 
