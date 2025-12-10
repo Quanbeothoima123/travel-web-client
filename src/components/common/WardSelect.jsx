@@ -41,7 +41,7 @@ export default function WardSelect({
       }
       setLoading(true);
       try {
-        const res = await fetch(`${API_BASE}/api/v1/wards/${provinceCode}`, {
+        const res = await fetch(`${API_BASE}/api/v1/wards/by-province/${provinceCode}`, {
           credentials: "include",
         });
         const data = await res.json();
