@@ -3,6 +3,7 @@ import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 import WeatherWidget from "@/components/common/WeatherWidget";
 import ContactFloating from "@/components/common/ContactFloating";
+import SupportChatWidget from "@/components/support-chat/SupportChatWidget";
 export default function MainLayout({ children }) {
   return (
     <>
@@ -11,6 +12,7 @@ export default function MainLayout({ children }) {
       <Footer />
       <WeatherWidget />
       <ContactFloating />
+      <SupportChatWidget />
     </>
   );
 }
