@@ -170,7 +170,7 @@ function TourCarousel({ thumbnail, images }) {
         {fullImages.map((img, idx) => (
           <div key={idx} className="px-1">
             <div
-              className={`relative w-[120px] aspect-[4/3] cursor-pointer rounded-lg overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_10px_rgba(0,0,128,0.5)] max-md:w-[90px] max-sm:w-[70px] ${
+              className={`relative w-[120px] aspect-4/3 cursor-pointer rounded-lg overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_10px_rgba(0,0,128,0.5)] max-md:w-[90px] max-sm:w-[70px] ${
                 idx === activeIndex
                   ? "ring-3 ring-primary shadow-[0_0_12px_rgba(0,0,128,0.7)]"
                   : ""
@@ -195,18 +195,18 @@ function TourCarousel({ thumbnail, images }) {
       {/* Lightbox */}
       {lightboxOpen && (
         <div
-          className="fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center animate-[fadeIn_0.3s]"
+          className="fixed inset-0 bg-black/95 z-9999 flex items-center justify-center animate-[fadeIn_0.3s]"
           onClick={closeLightbox}
         >
           <button
-            className="absolute top-5 right-5 w-12 h-12 rounded-full bg-white/90 flex items-center justify-center hover:bg-white hover:scale-110 transition-all z-[10000] max-md:top-2.5 max-md:right-2.5 max-md:w-10 max-md:h-10"
+            className="absolute top-5 right-5 w-12 h-12 rounded-full bg-white/90 flex items-center justify-center hover:bg-white hover:scale-110 transition-all z-10000 max-md:top-2.5 max-md:right-2.5 max-md:w-10 max-md:h-10"
             onClick={closeLightbox}
           >
             <X className="w-5 h-5 text-gray-800" />
           </button>
 
           <button
-            className="absolute left-5 w-12 h-12 rounded-full bg-white/90 flex items-center justify-center hover:bg-white hover:scale-110 transition-all z-[10000] max-md:w-10 max-md:h-10"
+            className="absolute left-5 w-12 h-12 rounded-full bg-white/90 flex items-center justify-center hover:bg-white hover:scale-110 transition-all z-10000 max-md:w-10 max-md:h-10"
             onClick={(e) => {
               e.stopPropagation();
               prevImage();
@@ -216,7 +216,7 @@ function TourCarousel({ thumbnail, images }) {
           </button>
 
           <button
-            className="absolute right-5 w-12 h-12 rounded-full bg-white/90 flex items-center justify-center hover:bg-white hover:scale-110 transition-all z-[10000] max-md:w-10 max-md:h-10"
+            className="absolute right-5 w-12 h-12 rounded-full bg-white/90 flex items-center justify-center hover:bg-white hover:scale-110 transition-all z-10000 max-md:w-10 max-md:h-10"
             onClick={(e) => {
               e.stopPropagation();
               nextImage();
@@ -238,7 +238,7 @@ function TourCarousel({ thumbnail, images }) {
             >
               {({ zoomIn, zoomOut, resetTransform, state }) => (
                 <>
-                  <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 bg-white/95 px-4 py-3 rounded-full shadow-lg z-[10001] items-center max-md:bottom-5 max-md:px-3 max-md:py-2">
+                  <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2 bg-white/95 px-4 py-3 rounded-full shadow-lg z-10001 items-center max-md:bottom-5 max-md:px-3 max-md:py-2">
                     <button
                       onClick={() => zoomOut()}
                       className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-gray-100 transition-all max-md:w-8 max-md:h-8"
@@ -260,7 +260,7 @@ function TourCarousel({ thumbnail, images }) {
                     >
                       <ZoomIn className="w-4 h-4 text-gray-800" />
                     </button>
-                    <span className="text-sm font-semibold text-gray-800 min-w-[45px] text-center max-md:text-xs max-md:min-w-[40px]">
+                    <span className="text-sm font-semibold text-gray-800 min-w-[45px] text-center max-md:text-xs max-md:min-w-10">
                       {Math.round((state?.scale || 1) * 100)}%
                     </span>
                   </div>
@@ -427,7 +427,7 @@ function TourInfo({ tourDetail }) {
         {tags?.map((tag, i) => (
           <button
             key={i}
-            className="cursor-pointer bg-white text-primary border-2 border-primary py-2.5 px-5 rounded-full text-sm font-medium transition-all hover:!bg-primary hover:!text-white"
+            className="cursor-pointer bg-white text-primary border-2 border-primary py-2.5 px-5 rounded-full text-sm font-medium transition-all hover:bg-primary! hover:text-white!"
           >
             {tag}
           </button>
@@ -499,20 +499,33 @@ function TourExperience({ tour }) {
 // ==================== TOUR SCHEDULE ====================
 function TourSchedule({ tour }) {
   const description = tour?.description || [];
-  const [allOpen, setAllOpen] = useState(false);
-  const [isToggleAllAction, setIsToggleAllAction] = useState(false);
+  const [openItems, setOpenItems] = useState({});
 
   const toggleAll = () => {
-    setIsToggleAllAction(true);
-    setAllOpen(!allOpen);
-    setTimeout(() => setIsToggleAllAction(false), 100);
-  };
+    const allClosed = description.every((_, index) => !openItems[index]);
 
-  const onIndividualToggle = () => {
-    if (!isToggleAllAction && allOpen) {
-      setAllOpen(false);
+    if (allClosed) {
+      // Mở tất cả
+      const newOpenItems = {};
+      description.forEach((_, index) => {
+        newOpenItems[index] = true;
+      });
+      setOpenItems(newOpenItems);
+    } else {
+      // Đóng tất cả
+      setOpenItems({});
     }
   };
+
+  const toggleItem = (index) => {
+    setOpenItems((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
+
+  const allOpen =
+    description.length > 0 && description.every((_, index) => openItems[index]);
 
   if (!description || description.length === 0) return null;
 
@@ -524,7 +537,7 @@ function TourSchedule({ tour }) {
         </h2>
         <button
           onClick={toggleAll}
-          className="cursor-pointer text-sm text-primary bg-white border-2 border-primary py-1 px-2.5 rounded-lg font-medium transition-all hover:!bg-primary hover:!text-white max-md:text-xs max-md:py-1 max-md:px-2"
+          className="cursor-pointer text-sm text-primary bg-white border-2 border-primary py-1 px-2.5 rounded-lg font-medium transition-all hover:bg-primary! hover:text-white! max-md:text-xs max-md:py-1 max-md:px-2"
         >
           {allOpen ? "Thu gọn" : "Xem tất cả"}
         </button>
@@ -532,9 +545,10 @@ function TourSchedule({ tour }) {
       {description.map((item, index) => (
         <DayItem
           key={index}
+          index={index}
           {...item}
-          isOpen={allOpen}
-          onIndividualToggle={onIndividualToggle}
+          isOpen={openItems[index] || false}
+          onToggle={toggleItem}
         />
       ))}
     </div>
@@ -542,60 +556,32 @@ function TourSchedule({ tour }) {
 }
 
 // ==================== DAY ITEM ====================
-function DayItem({
-  day,
-  title,
-  image,
-  description,
-  isOpen,
-  onIndividualToggle,
-}) {
-  const [localOpen, setLocalOpen] = useState(false);
+function DayItem({ index, day, title, image, description, isOpen, onToggle }) {
   const contentRef = useRef(null);
-
-  // Use isOpen from parent if provided, otherwise use local state
-  const expanded = isOpen !== undefined ? isOpen : localOpen;
 
   useEffect(() => {
     if (contentRef.current) {
-      if (expanded) {
+      if (isOpen) {
         contentRef.current.style.maxHeight =
           contentRef.current.scrollHeight + "px";
       } else {
         contentRef.current.style.maxHeight = "0px";
       }
     }
-  }, [expanded]);
+  }, [isOpen]);
 
-  const handleHeaderClick = (e) => {
-    if (!e.target.closest(".day-icon")) {
-      setLocalOpen(!localOpen);
-      if (onIndividualToggle) {
-        onIndividualToggle();
-      }
-    }
-  };
-
-  const handleIconClick = (e) => {
-    e.stopPropagation();
-    setLocalOpen(!localOpen);
-    if (onIndividualToggle) {
-      onIndividualToggle();
-    }
-  };
-
-  const handleContentClick = (e) => {
-    e.stopPropagation();
+  const handleToggle = () => {
+    onToggle(index);
   };
 
   return (
     <div className="bg-white rounded-lg mb-3 p-4 cursor-pointer shadow-sm w-full overflow-hidden transition-all border border-gray-200 hover:shadow-md hover:-translate-y-0.5">
       <div
         className="flex items-center justify-between gap-3"
-        onClick={handleHeaderClick}
+        onClick={handleToggle}
       >
-        {!expanded && image && (
-          <div className="relative w-[100px] h-[60px] flex-shrink-0 rounded overflow-hidden max-md:w-20 max-md:h-12">
+        {!isOpen && image && (
+          <div className="relative w-[100px] h-[60px] shrink-0 rounded overflow-hidden max-md:w-20 max-md:h-12">
             <Image
               src={image}
               alt={`Day ${day}`}
@@ -607,7 +593,7 @@ function DayItem({
         )}
         <div
           className={`flex-1 transition-all ${
-            expanded
+            isOpen
               ? "ml-0 whitespace-normal"
               : "overflow-hidden text-ellipsis whitespace-nowrap"
           }`}
@@ -618,23 +604,21 @@ function DayItem({
           </h5>
         </div>
         <span
-          className={`day-icon text-[0.8rem] transition-transform text-gray-500 ${
-            expanded ? "rotate-180 text-primary" : ""
+          className={`text-[0.8rem] transition-transform text-gray-500 ${
+            isOpen ? "rotate-180 text-primary" : ""
           }`}
-          onClick={handleIconClick}
         >
           <ChevronDown size={16} />
         </span>
       </div>
       <div
         ref={contentRef}
-        className={`max-h-0 overflow-hidden transition-all duration-[350ms] ${
-          expanded ? "opacity-100" : "opacity-0"
+        className={`max-h-0 overflow-hidden transition-all duration-350 ${
+          isOpen ? "opacity-100" : "opacity-0"
         }`}
-        onClick={handleContentClick}
       >
         <div
-          className="pt-3.5 text-[0.9rem] leading-[1.6] text-gray-700 break-words prose prose-sm max-w-none"
+          className="pt-3.5 text-[0.9rem] leading-[1.6] text-gray-700 wrap-break-word prose prose-sm max-w-none"
           dangerouslySetInnerHTML={{ __html: description }}
         />
       </div>
@@ -669,7 +653,7 @@ function TourTerms({ terms }) {
             className={`py-2.5 px-4 border-2 border-primary cursor-pointer rounded text-[0.9375rem] font-medium flex items-center gap-2 transition-all max-md:text-sm max-md:py-2 max-md:px-3.5 ${
               activeTab === index
                 ? "bg-primary text-white -translate-y-0.5 shadow-sm"
-                : "bg-white text-primary hover:!bg-primary hover:!text-white"
+                : "bg-white text-primary hover:bg-primary! hover:text-white!"
             }`}
             onClick={() => setActiveTab(index)}
           >
