@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle, XCircle, Clock, Home } from "lucide-react";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 
-export default function PaymentResultPage() {
+function PaymentResultContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -55,14 +55,13 @@ export default function PaymentResultPage() {
     };
 
     fetchOrderData();
-  }, [orderId]);
+  }, [orderId, resultCode, orderInfo, transId]);
 
   const getStatusInfo = () => {
     if (!invoice) return null;
 
     const { typeOfPayment, isPaid, status } = invoice;
 
-    // Thanh toán tại công ty
     if (typeOfPayment === "cash") {
       return {
         icon: Clock,
@@ -75,7 +74,6 @@ export default function PaymentResultPage() {
       };
     }
 
-    // Thanh toán online (MoMo, Card)
     if (isPaid || status === "paid") {
       return {
         icon: CheckCircle,
@@ -97,7 +95,6 @@ export default function PaymentResultPage() {
       };
     }
 
-    // Pending
     return {
       icon: Clock,
       color: "blue",
@@ -179,28 +176,23 @@ export default function PaymentResultPage() {
       className={`min-h-screen bg-linear-to-br ${bgGradient} flex items-center justify-center p-4 py-12`}
     >
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
-        {/* Status Icon */}
         <div
           className={`${iconBg} w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6`}
         >
           <StatusIcon className={`w-12 h-12 ${iconColor}`} />
         </div>
 
-        {/* Title & Subtitle */}
         <h1 className="text-3xl font-bold text-center text-gray-900 mb-2">
           {statusInfo?.title}
         </h1>
         <p className="text-center text-gray-600 mb-8">{statusInfo?.subtitle}</p>
 
-        {/* Message */}
         <div className="bg-gray-50 rounded-lg p-6 mb-8">
           <p className="text-gray-700 text-center">{statusInfo?.message}</p>
         </div>
 
-        {/* Invoice Details */}
         {invoice && (
           <div className="space-y-6 mb-8">
-            {/* Mã đơn hàng */}
             <div className="border-l-4 border-blue-500 pl-4">
               <p className="text-sm text-gray-600 mb-1">Mã đơn hàng</p>
               <p className="text-xl font-bold text-gray-900">
@@ -208,7 +200,6 @@ export default function PaymentResultPage() {
               </p>
             </div>
 
-            {/* Thông tin tour */}
             <div>
               <p className="text-sm text-gray-600 mb-3 font-semibold">
                 Thông tin đặt tour
@@ -251,7 +242,6 @@ export default function PaymentResultPage() {
               </div>
             </div>
 
-            {/* Thông tin khách hàng */}
             <div>
               <p className="text-sm text-gray-600 mb-3 font-semibold">
                 Thông tin khách hàng
@@ -282,7 +272,6 @@ export default function PaymentResultPage() {
               </div>
             </div>
 
-            {/* Total Price */}
             <div className="bg-linear-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-600 p-4 rounded-lg">
               <p className="text-sm text-gray-600 mb-1">Tổng tiền</p>
               <p className="text-3xl font-bold text-blue-600">
@@ -290,7 +279,6 @@ export default function PaymentResultPage() {
               </p>
             </div>
 
-            {/* Company Info for Cash Payment */}
             {invoice.typeOfPayment === "cash" && (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
                 <p className="text-sm font-semibold text-amber-900 mb-2">
@@ -307,7 +295,6 @@ export default function PaymentResultPage() {
           </div>
         )}
 
-        {/* Action Buttons */}
         <div className="flex gap-4">
           <button
             onClick={() => router.push("/tours")}
@@ -323,7 +310,6 @@ export default function PaymentResultPage() {
           </button>
         </div>
 
-        {/* Support */}
         <div className="mt-8 pt-8 border-t border-gray-200 text-center text-sm text-gray-600">
           <p>Cần hỗ trợ? Liên hệ chúng tôi qua:</p>
           <p className="font-semibold text-gray-900 mt-1">
@@ -332,5 +318,22 @@ export default function PaymentResultPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PaymentResultPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Đang tải thông tin...</p>
+          </div>
+        </div>
+      }
+    >
+      <PaymentResultContent />
+    </Suspense>
   );
 }
