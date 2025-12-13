@@ -47,7 +47,7 @@ export default function BookingPage() {
   useEffect(() => {
     if (user) {
       setName(user.fullName || "");
-      setPhone(user.phoneNumber || "");
+      setPhone(user.phone || "");
       setEmail(user.email || "");
       setAddress(user.address || "");
       if (user.province) setProvince(user.province);
@@ -691,7 +691,8 @@ export default function BookingPage() {
                   </span>
                 </div>
                 <p className="text-sm text-gray-600">
-                  Thanh toán trực tuyến an toàn qua MoMo
+                  Phương thức này hiện đang test, vui lòng chọn thanh toán tại
+                  công ty.
                 </p>
               </label>
 

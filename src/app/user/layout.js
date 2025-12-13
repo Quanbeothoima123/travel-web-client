@@ -19,18 +19,20 @@ export default function UserLayout({ children }) {
   const menuItems = [
     { label: "Thông tin cá nhân", path: "/user/profile" },
     { label: "Lịch sử đặt tour", path: "/user/transactions_tour" },
-    {
-      label: "Lịch sử sử dụng dịch vụ khác",
-      path: "/user/transactions_service",
-    },
+    // {
+    //   label: "Lịch sử sử dụng dịch vụ khác",
+    //   path: "/user/transactions_service",
+    // },
     { label: "Bạn bè", path: "/user/friends" },
     { label: "Nhắn tin", path: "/user/chat" },
-    { label: "Tải video khoảng khắc", path: "/user/upload/videos" },
-    { label: "Bài viết cá nhân", path: "/user/posts" },
-    { label: "Tour yêu thích", path: "/user/favorites" },
-    { label: "Mã giảm giá", path: "/user/coupons" },
-    { label: "Liên hệ hỗ trợ", path: "/user/support" },
-    { label: "Chế độ tối", path: "/user/dark-mode" },
+    // { label: "Tải video khoảng khắc", path: "/user/upload/videos" },
+    // { label: "Bài viết cá nhân", path: "/user/posts" },
+    { label: "Bài viết yêu thích", path: "/user/news-favorite" },
+    { label: "Bộ sưu tập yêu thích", path: "/user/gallery-favorite" },
+    // { label: "Tour yêu thích", path: "/user/favorites" },
+    // { label: "Mã giảm giá", path: "/user/coupons" },
+    // { label: "Liên hệ hỗ trợ", path: "/user/support" },
+    // { label: "Chế độ tối", path: "/user/dark-mode" },
     { label: "Về trang chủ", path: "/" },
   ];
 

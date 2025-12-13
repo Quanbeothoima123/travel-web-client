@@ -115,7 +115,7 @@ export default function PaymentResultPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Đang tải thông tin...</p>
@@ -126,7 +126,7 @@ export default function PaymentResultPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-pink-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-linear-to-br from-red-50 to-pink-100 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full">
           <div className="flex justify-center mb-4">
             <XCircle className="w-16 h-16 text-red-600" />
@@ -176,7 +176,7 @@ export default function PaymentResultPage() {
 
   return (
     <div
-      className={`min-h-screen bg-gradient-to-br ${bgGradient} flex items-center justify-center p-4 py-12`}
+      className={`min-h-screen bg-linear-to-br ${bgGradient} flex items-center justify-center p-4 py-12`}
     >
       <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-2xl w-full">
         {/* Status Icon */}
@@ -283,7 +283,7 @@ export default function PaymentResultPage() {
             </div>
 
             {/* Total Price */}
-            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-600 p-4 rounded-lg">
+            <div className="bg-linear-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-600 p-4 rounded-lg">
               <p className="text-sm text-gray-600 mb-1">Tổng tiền</p>
               <p className="text-3xl font-bold text-blue-600">
                 {formatVND(invoice.totalPrice)}
@@ -316,10 +316,10 @@ export default function PaymentResultPage() {
             Tiếp tục mua tour
           </button>
           <button
-            onClick={() => router.push("/profile/bookings")}
+            onClick={() => router.push("/user/invoice/" + orderId)}
             className="flex-1 bg-gray-200 text-gray-900 py-3 rounded-lg font-semibold hover:bg-gray-300 transition-colors"
           >
-            Xem đơn hàng
+            Xem chi tiết
           </button>
         </div>
 
