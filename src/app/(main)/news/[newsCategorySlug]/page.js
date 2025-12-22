@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
 import NewsPageClient from "./NewsPageClient";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
