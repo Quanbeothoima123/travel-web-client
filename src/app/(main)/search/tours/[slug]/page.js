@@ -1,7 +1,7 @@
 // app/search/tours/[slug]/page.js
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, useSearchParams, useParams } from "next/navigation";
 import SearchBox from "@/components/common/SearchBox";
 import CategoryTreeSelect from "@/components/common/CategoryTreeSelect";
@@ -9,7 +9,7 @@ import Pagination from "@/components/common/Pagination";
 import TourCard from "@/components/common/TourCard";
 import TourCardSkeleton from "@/components/common/TourCardSkeleton";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "https://localhost:5000";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "http://localhost:5000";
 
 // Utility functions
 const formatVND = (amount) => {
@@ -32,7 +32,7 @@ export default function SearchTour() {
   const [totalPages, setTotalPages] = useState(1);
   const [sortBy, setSortBy] = useState("");
 
-  // Form state (chưa submit)
+  // Form state
   const [query, setQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [minPrice, setMinPrice] = useState("");
@@ -45,10 +45,7 @@ export default function SearchTour() {
   const [allVehicles, setAllVehicles] = useState([]);
   const [allDepartPlaces, setAllDepartPlaces] = useState([]);
 
-  // Track if this is initial load
-  const isInitialLoad = useRef(true);
-
-  // Fetch filter options (chỉ 1 lần)
+  // Fetch filter options
   useEffect(() => {
     const fetchOptions = async () => {
       try {
@@ -71,7 +68,7 @@ export default function SearchTour() {
     fetchOptions();
   }, []);
 
-  // Fetch category by slug from URL
+  // Fetch category by slug
   useEffect(() => {
     const categorySlug = params.slug;
     if (categorySlug && categorySlug !== "tour-du-lich") {
@@ -81,7 +78,6 @@ export default function SearchTour() {
     }
   }, [params.slug]);
 
-  // Fetch category by slug
   const fetchCategoryBySlug = async (slug) => {
     try {
       const res = await fetch(
@@ -96,10 +92,10 @@ export default function SearchTour() {
     }
   };
 
-  // ✅ MAIN FIX: Sync form state từ URL và fetch tours trong 1 effect
+  // ✅ FIX: Sync form state và fetch tours (KHÔNG skip initial load)
   useEffect(() => {
     const syncAndFetch = async () => {
-      // 1. Đọc tất cả params từ URL
+      // 1. Đọc params từ URL
       const q = searchParams.get("q") || "";
       const min = searchParams.get("minPrice") || "";
       const max = searchParams.get("maxPrice") || "";
@@ -108,7 +104,7 @@ export default function SearchTour() {
       const vehicleList = searchParams.getAll("vehicles") || [];
       const pageNum = parseInt(searchParams.get("page")) || 1;
 
-      // 2. Update form state (cho UI)
+      // 2. Update form state
       setQuery(q);
       setMinPrice(min);
       setMaxPrice(max);
@@ -116,13 +112,7 @@ export default function SearchTour() {
       setFilters(filterList);
       setVehicles(vehicleList);
 
-      // 3. Skip fetch nếu là initial load
-      if (isInitialLoad.current) {
-        isInitialLoad.current = false;
-        return;
-      }
-
-      // 4. Fetch tours với params từ URL (không dùng state!)
+      // 3. ✅ FETCH LUÔN (không skip)
       try {
         setLoading(true);
         const fetchParams = new URLSearchParams();
@@ -144,23 +134,32 @@ export default function SearchTour() {
         vehicleList.forEach((v) => fetchParams.append("vehicles", v));
 
         const url = `${API_BASE}/api/v1/tours/search-combined?${fetchParams.toString()}`;
-        console.log("🔍 Fetching:", url); // Debug log
+        console.log("🔍 Fetching:", url);
 
         const res = await fetch(url);
-        const data = await res.json();
 
+        // ✅ Check response status
+        if (!res.ok) {
+          console.error(`❌ API Error: ${res.status} ${res.statusText}`);
+          setTours([]);
+          setTotalPages(1);
+          return;
+        }
+
+        const data = await res.json();
         setTours(data.data || []);
         setTotalPages(data.pagination?.totalPages || 1);
       } catch (err) {
-        console.error("Error fetching tours:", err);
+        console.error("❌ Error fetching tours:", err);
         setTours([]);
+        setTotalPages(1);
       } finally {
         setLoading(false);
       }
     };
 
     syncAndFetch();
-  }, [searchParams, params.slug]); // ✅ CHỈ depend vào searchParams và params.slug
+  }, [searchParams, params.slug]);
 
   // Sort tours
   const sortTours = (tours, sortBy) => {
@@ -180,7 +179,7 @@ export default function SearchTour() {
     }
   };
 
-  // Handle search: Build new URL và navigate
+  // Handle search
   const handleSearch = () => {
     const searchParamsObj = new URLSearchParams();
 
@@ -193,7 +192,6 @@ export default function SearchTour() {
     searchParamsObj.set("page", "1");
 
     const targetSlug = selectedCategory?.slug || params.slug || "tour-du-lich";
-
     router.push(`/search/tours/${targetSlug}?${searchParamsObj.toString()}`);
   };
 
@@ -209,7 +207,6 @@ export default function SearchTour() {
     );
   };
 
-  // Handle page change: Update URL
   const handlePageChange = (newPage) => {
     const searchParamsObj = new URLSearchParams(searchParams.toString());
     searchParamsObj.set("page", newPage.toString());
@@ -220,7 +217,6 @@ export default function SearchTour() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  // Get current page from URL (cho Pagination component)
   const currentPage = parseInt(searchParams.get("page")) || 1;
 
   return (
